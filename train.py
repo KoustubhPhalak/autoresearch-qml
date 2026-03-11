@@ -5,7 +5,7 @@ from torch.optim import Adam
 
 # Config
 n_qubits = 4
-n_layers = 3
+n_layers = 6
 lr = 0.02
 epochs = 25
 
@@ -18,19 +18,20 @@ dev = qml.device("default.qubit", wires=n_qubits)
 
 @qml.qnode(dev, interface="torch")
 def circuit(inputs, weights):
-    # ── AGENT: Experiment with Angle Embedding Patterns ──
-    # Current: RX on all, then RY on all (2 features per qubit)
+    # ── RX-RY-RZ Embedding: cycle 8 features across 3 rotation axes ──
+    n_feat = inputs.shape[0]  # 8
     for i in range(n_qubits):
-        qml.RX(inputs[i], wires=i)
-        qml.RY(inputs[i + n_qubits], wires=i)
+        qml.RX(inputs[i % n_feat], wires=i)
+        qml.RY(inputs[(i + n_qubits) % n_feat], wires=i)
+        qml.RZ(inputs[(i + 2 * n_qubits) % n_feat], wires=i)
 
-    # ── Variational Ansatz ──
+    # ── Variational Ansatz (6 layers, ring CNOT) ──
     for l in range(n_layers):
         for i in range(n_qubits):
             qml.RZ(weights[l, i], wires=i)
         for i in range(n_qubits):
             qml.CNOT(wires=[i, (i + 1) % n_qubits])
-    
+
     return [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
 
 class QNN(nn.Module):

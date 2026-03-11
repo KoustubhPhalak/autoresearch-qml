@@ -2,25 +2,20 @@ import torch
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def generate_ntangled_features(n_samples=600, n_features=8):
+def generate_ntangled_features(n_samples=1000, n_features=8):
     """
-    Simulates the weights/parameters provided in the Schatzki repo.
-    Class 0: Parameters leading to low 'Concentratable Entanglement' (CE).
-    Class 1: Parameters leading to high 'Concentratable Entanglement' (CE).
+    Hardened NTangled Parameters: 
+    Using interleaved 'parity' logic that requires non-linear mapping.
     """
-    # Class 0: Narrow distribution of angles (less 'scrambling')
-    class_0 = np.random.uniform(0, np.pi/4, (n_samples // 2, n_features))
+    X = np.random.uniform(0, 2 * np.pi, (n_samples, n_features))
     
-    # Class 1: Wide distribution of angles (maximal 'scrambling')
-    class_1 = np.random.uniform(0, 2*np.pi, (n_samples // 2, n_features))
+    # Class 0: Sum of angles is 'even' (in terms of pi/2 blocks)
+    # Class 1: Sum of angles is 'odd'
+    # This creates a high-dimensional checkerboard pattern that is 
+    # impossible for a simple linear layer or basic HEA to solve.
+    y = (np.sum(X // (np.pi / 2), axis=1) % 2).astype(int)
     
-    X = np.vstack([class_0, class_1])
-    y = np.array([0]*(n_samples // 2) + [1]*(n_samples // 2))
-    
-    # Shuffle
-    indices = np.arange(n_samples)
-    np.random.shuffle(indices)
-    return X[indices], y[indices]
+    return X, y
 
 if __name__ == "__main__":
     print("Generating NTangled Parameter Dataset...")

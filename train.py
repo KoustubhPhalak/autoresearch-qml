@@ -6,8 +6,8 @@ from torch.optim import Adam
 # Config
 n_qubits = 4
 n_layers = 3
-lr = 0.01
-epochs = 15
+lr = 0.02
+epochs = 25
 
 # Load Data (NTangled Parameters)
 data = torch.load('ntangled_params.pt')
@@ -49,8 +49,8 @@ loss_fn = nn.CrossEntropyLoss()
 
 # Training loop (Subset for speed)
 for epoch in range(epochs):
-    logits = model(X_train[:64])
-    loss = loss_fn(logits, y_train[:64])
+    logits = model(X_train[:200])
+    loss = loss_fn(logits, y_train[:200])
     optimizer.zero_grad(); loss.backward(); optimizer.step()
 
 # Evaluation

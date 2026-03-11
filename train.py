@@ -3,66 +3,69 @@ import torch.nn as nn
 import pennylane as qml
 from torch.optim import Adam
 
-# Config — 8 qubits, trainable encoding offset + scale per qubit
-n_qubits = 8
-n_layers = 3
-lr = 0.02
-epochs = 40
+# iter2: StatePrep + trainable basis rotations + all ZZ correlators
+# Physics: CE depends on tr(rho_i^2), detectable via ZZ correlators
+# No destructive pooling — measure 10 observables then classify classically
 
-# Load Data
-data = torch.load('ntangled_params.pt')
+n_qubits = 4
+lr = 0.03
+epochs = 80
+
+data = torch.load('ntangled_states.pt')
 X_train, y_train = data['X_train'], data['y_train']
 X_test, y_test = data['X_test'], data['y_test']
 
 dev = qml.device("default.qubit", wires=n_qubits)
 
 @qml.qnode(dev, interface="torch")
-def circuit(inputs, weights, enc_offset, enc_scale):
-    # ── Trainable Angle Embedding ─────────────────────────────────────────────
-    # Per-qubit learnable offset and scale: RY(enc_offset[i] + enc_scale[i]*x_i)
-    # The model must learn the right encoding from data (no hand-coding).
+def circuit(state, u_weights):
+    # Load 4-qubit quantum state
+    qml.StatePrep(state, wires=range(n_qubits), normalize=True)
+
+    # Trainable basis rotation: find optimal measurement basis
     for i in range(n_qubits):
-        qml.RY(enc_offset[i] + enc_scale[i] * inputs[i], wires=i)
+        qml.RY(u_weights[i, 0], wires=i)
+        qml.RZ(u_weights[i, 1], wires=i)
 
-    # ── Variational Ansatz (ring CNOT) ────────────────────────────────────────
-    for l in range(n_layers):
-        for i in range(n_qubits):
-            qml.RZ(weights[l, i], wires=i)
-        for i in range(n_qubits):
-            qml.CNOT(wires=[i, (i + 1) % n_qubits])
+    # Return all single-qubit Z + all pairwise ZZ correlators
+    # Single-qubit: 4 values; pairwise: C(4,2)=6 values → 10 total
+    obs = [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
+    obs += [qml.expval(qml.PauliZ(i) @ qml.PauliZ(j))
+            for i in range(n_qubits) for j in range(i + 1, n_qubits)]
+    return obs
 
-    # ── Measure individual Z + global parity Z⊗8 ─────────────────────────────
-    z_vals = [qml.expval(qml.PauliZ(i)) for i in range(n_qubits)]
-    obs = qml.PauliZ(0)
-    for i in range(1, n_qubits):
-        obs = obs @ qml.PauliZ(i)
-    return z_vals + [qml.expval(obs)]
 
-class QNN(nn.Module):
+class QClassifier(nn.Module):
     def __init__(self):
         super().__init__()
-        self.weights = nn.Parameter(0.01 * torch.randn(n_layers, n_qubits))
-        # Learnable encoding — random init, NOT preset to π/2 or ×2
-        self.enc_offset = nn.Parameter(torch.randn(n_qubits))
-        self.enc_scale  = nn.Parameter(torch.ones(n_qubits))
-        # Classify from 8 individual Z measurements + 1 global Z⊗8
-        self.clayer = nn.Linear(n_qubits + 1, 2)
+        # Trainable measurement bases: [n_qubits, 2] (RY angle, RZ angle)
+        self.u_weights = nn.Parameter(torch.randn(n_qubits, 2))
+        # Classical MLP on 10 quantum features
+        self.mlp = nn.Sequential(
+            nn.Linear(10, 16),
+            nn.ReLU(),
+            nn.Linear(16, 2),
+        )
 
     def forward(self, x):
         out = torch.stack([
-            torch.stack(circuit(x[i], self.weights, self.enc_offset, self.enc_scale))
+            torch.stack(circuit(x[i], self.u_weights))
             for i in range(x.shape[0])
         ])
-        return self.clayer(out.float())
+        return self.mlp(out.float())
 
-model = QNN()
+
+model = QClassifier()
 optimizer = Adam(model.parameters(), lr=lr)
 loss_fn = nn.CrossEntropyLoss()
 
 for epoch in range(epochs):
-    logits = model(X_train[:300])
-    loss = loss_fn(logits, y_train[:300])
+    idx = torch.randperm(len(X_train))[:300]
+    logits = model(X_train[idx])
+    loss = loss_fn(logits, y_train[idx])
     optimizer.zero_grad(); loss.backward(); optimizer.step()
+    if (epoch + 1) % 10 == 0:
+        print(f"  epoch {epoch+1:3d}: loss={loss.item():.4f}")
 
 model.eval()
 with torch.no_grad():

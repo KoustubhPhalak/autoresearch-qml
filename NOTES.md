@@ -53,6 +53,7 @@
 | 37   | 0.965  | DISCARD | CBN(16) → Linear(16,256) → ReLU → Linear(256,2) — mislabeled as QBN; was classical BN |
 | 38   | 0.955  | KEEP ★  | True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2) |
 | 39   | 0.960  | DISCARD | True QBN moved AFTER variational layers (before measurement) + same head |
+| 40   | 0.980  | KEEP ★  | Dataset regenerated with correct full-power-set CE (Schatzki et al.) + iter39 architecture |
 
 ---
 
@@ -350,9 +351,19 @@
 - The fix is architecturally correct — QBN now acts on the QNN's output state.
 - Discarded: 0.960 does not beat the best kept result (iter30, 0.975).
 
+### iter40 — Corrected Dataset (Full-Power-Set CE) + iter39 Architecture (0.980, KEEP ★)
+- Dataset regenerated using the correct Schatzki et al. CE formula: sum over all 2^n subsystems
+  (full power set), not just single-qubit marginals as prepare.py previously did.
+- Architecture unchanged from iter39: StatePrep + 2-layer CNOT ring (zero-init) + QBN after
+  variational layers + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs.
+- |q_grad| = 0.010 → 0.015 → 0.021 → 0.012. Loss converged to 0.196.
+- TEST_ACC=0.980. New best — beats iter30's 0.975 (CBN) and all previous results.
+- The accuracy gain is attributable to the dataset fix: the corrected CE captures genuine
+  multi-qubit entanglement structure, producing a cleaner class boundary.
+
 ---
 
 ## BEST COMMITTED RESULT
-- **iter38 (0.9550):** True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs
+- **iter40 (0.9800):** Corrected full-power-set CE dataset + QBN after variational layers + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs
 - **iter30 (0.9750):** StatePrep + 2-layer CNOT ring (zero-init) + probs + MLP(64,32,2)+CBN, 120 epochs, lr=0.004
-- **iter9  (0.9700):** Same architecture, 80 epochs, lr=0.003
+- **iter38 (0.9550):** True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs

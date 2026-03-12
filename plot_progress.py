@@ -46,6 +46,7 @@ experiments = [
     (37, 0.965, "DISCARD", "iter37: CBN(not QBN)+Linear(16,256)\n+ReLU+Linear(256,2)"),
     (38, 0.955, "KEEP",    "iter38: True QBN (RY in circuit)\n+Linear(16,256)+ReLU+Linear(256,2)"),
     (39, 0.960, "DISCARD", "iter39: QBN after variational\nlayers (bug fix)"),
+    (40, 0.980, "KEEP",    "iter40: corrected CE dataset\n(full power-set subsystems)"),
 ]
 
 iters  = [e[0] for e in experiments]

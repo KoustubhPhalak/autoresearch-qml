@@ -44,13 +44,14 @@
 | 28   | 0.935  | DISCARD | All-to-all CNOT topology (6 CNOTs/layer) |
 | 29   | 0.955  | DISCARD | Ensemble of 2 iter9-like models (avg logits) |
 | 30   | 0.975  | KEEP ★  | 120 epochs, lr=0.004, exact iter9 architecture |
-| 31   | 0.420  | DISCARD | QBN(16) → Linear(16,2) — no capacity |
-| 32   | 0.910  | DISCARD | QBN(16) → Linear(16,32) → ReLU → Linear(32,2) |
-| 33   | 0.935  | DISCARD | QBN(16) → Linear(16,64) → ReLU → Linear(64,2) |
-| 34   | 0.925  | DISCARD | QBN(16) → Linear(16,64) → ReLU → Linear(64,32) → ReLU → Linear(32,2) — 2 hidden layers, overfit |
-| 35   | 0.655  | DISCARD | QBN(16) → Linear(16,8) → ReLU → Linear(8,2) — bottleneck too narrow |
-| 36   | 0.910  | DISCARD | lr=0.01, batch=400, QBN(16) → Linear(16,8) → ReLU → Linear(8,2) |
-| 37   | 0.965  | KEEP ★  | QBN(16) → Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs |
+| 31   | 0.420  | DISCARD | CBN(16) → Linear(16,2) — no capacity |
+| 32   | 0.910  | DISCARD | CBN(16) → Linear(16,32) → ReLU → Linear(32,2) |
+| 33   | 0.935  | DISCARD | CBN(16) → Linear(16,64) → ReLU → Linear(64,2) |
+| 34   | 0.925  | DISCARD | CBN(16) → Linear(16,64) → ReLU → Linear(64,32) → ReLU → Linear(32,2) — 2 hidden layers, overfit |
+| 35   | 0.655  | DISCARD | CBN(16) → Linear(16,8) → ReLU → Linear(8,2) — bottleneck too narrow |
+| 36   | 0.910  | DISCARD | lr=0.01, batch=400, CBN(16) → Linear(16,8) → ReLU → Linear(8,2) |
+| 37   | 0.965  | DISCARD | CBN(16) → Linear(16,256) → ReLU → Linear(256,2) — mislabeled as QBN; was classical BN |
+| 38   | 0.955  | KEEP ★  | True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2) |
 
 ---
 
@@ -287,57 +288,62 @@
 
 ---
 
-## iter31–iter32 Results (Permanent Architecture Established)
+## iter31–iter38 Results (Permanent Architecture Established)
 
 **Permanent constraints (user-specified from iter31 onward):**
-- QBN = BatchNorm1d on the 16-dim QNN output probs (only normalisation allowed)
+- True QBN: batch-marginal RY corrections applied INSIDE the quantum circuit (not classical BN on output)
 - No classical BN anywhere in the head
 - QNN receives no BN-normalised input
-- Minimal linear layers in head
+- Max 2 linear layers in head (width unconstrained)
 - Max 100 epochs
 
-- **iter31 (0.420, DISCARD):** QBN(16) → Linear(16,2). Single linear layer — no capacity.
+**NOTE on iter31–36:** These iterations were mislabeled as "QBN" in earlier notes. They all used
+`nn.BatchNorm1d(16)` applied to the 16-dim probability output after the circuit — this is
+**classical BN (CBN)** on quantum output, NOT true QBN. Corrected below.
+
+- **iter31 (0.420, DISCARD):** CBN(16) → Linear(16,2). Single linear layer — no capacity.
   - |q_grad| = 0.005–0.007. Loss stuck at 0.69 (random). Single linear layer can't
     learn a non-linear boundary from 16 normalised features.
 
-- **iter32 (0.910, DISCARD):** QBN(16) → Linear(16,32) → ReLU → Linear(32,2).
+- **iter32 (0.910, DISCARD):** CBN(16) → Linear(16,32) → ReLU → Linear(32,2).
   - Added 1 hidden layer (32 units). Gradient: 0.011 → 0.024.
   - Loss converged to 0.242. Stable learning. 0.91 > 0.85 target.
   - Head capacity still limiting — 32-unit hidden layer is not wide enough.
 
-- **iter33 (0.935, DISCARD):** QBN(16) → Linear(16,64) → ReLU → Linear(64,2).
+- **iter33 (0.935, DISCARD):** CBN(16) → Linear(16,64) → ReLU → Linear(64,2).
   - Wider (64 vs 32) improved: 0.910 → 0.935. Gradient 0.014–0.020.
   - Loss converged to 0.234. Still below 0.95 target.
-  - Single hidden layer at 64 units is not enough.
 
-- **iter34 (0.925, DISCARD):** QBN(16) → Linear(16,64) → ReLU → Linear(64,32) → ReLU → Linear(32,2).
-  - Tried 2 hidden layers (64→32) — violates max-2-linear constraint (has 3 linear layers).
-  - Slight regression from iter33 (0.925 < 0.935). The extra hidden layer added capacity but
-    the funnel shape (64→32) didn't help — it narrows too fast after widening.
+- **iter34 (0.925, DISCARD):** CBN(16) → Linear(16,64) → ReLU → Linear(64,32) → ReLU → Linear(32,2).
+  - 3 linear layers — violates max-2-linear constraint. Slight regression vs iter33.
   - |q_grad| = 0.014–0.019. Loss converged to 0.235.
 
-- **iter35 (0.655, DISCARD):** QBN(16) → Linear(16,8) → ReLU → Linear(8,2).
+- **iter35 (0.655, DISCARD):** CBN(16) → Linear(16,8) → ReLU → Linear(8,2).
   - User-specified narrow bottleneck of 8 units. Severe capacity bottleneck.
   - |q_grad| = 0.003–0.008. Loss stuck at 0.586 (near-random).
-  - 8-unit hidden layer is too small to learn discriminative projections from 16-dim probs.
 
-- **iter36 (0.910, DISCARD):** QBN(16) → Linear(16,8) → ReLU → Linear(8,2), lr=0.01, batch=400.
-  - Tuned iter35 with higher lr and larger batch to compensate for narrow head.
+- **iter36 (0.910, DISCARD):** CBN(16) → Linear(16,8) → ReLU → Linear(8,2), lr=0.01, batch=400.
+  - Tuned iter35 with higher lr and larger batch. Still architecturally bottlenecked.
   - |q_grad| improved to 0.010–0.018. Loss converged to 0.242.
-  - 0.910 — better than iter35 but still far short of 0.95. The bottleneck is architectural.
 
-- **iter37 (0.965, KEEP ★):** QBN(16) → Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs.
-  - Key insight: width (not depth) is what matters. After user relaxed constraint to "max 2 linear
-    layers", used Linear(16,256) — the 256×16 weight matrix creates a 16-dimensional gradient
-    projection ∂L/∂probs ∝ W^T, strongly amplifying quantum circuit gradients.
-  - |q_grad| = 0.014–0.031. Loss converged to 0.031 (close to iter9/30's ~0.02–0.03 range).
-  - **First 95%+ result with QBN-only architecture (no classical BN anywhere).**
-  - Wide first linear layer compensates for the lack of classical BN's gradient amplification.
-  - This is the permanent architecture going forward.
+- **iter37 (0.965, DISCARD):** CBN(16) → Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300.
+  - ⚠ Mislabeled as QBN — actually `nn.BatchNorm1d(16)` on circuit output (classical BN).
+  - Width insight is correct: 256-unit layer provides strong gradient projection back to circuit.
+  - |q_grad| = 0.014–0.031. Loss converged to 0.031. TEST_ACC=0.965.
+  - Discarded because it used CBN, not true QBN.
+
+- **iter38 (0.955, KEEP ★):** True QBN (inside circuit) + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs.
+  - **First result with true QBN**: batch marginals computed from raw |ψ|² (no extra circuit pass),
+    correction angles θ_i = γ_i·arcsin(1−2·m_i)+β_i applied as RY gates INSIDE the circuit,
+    before variational layers. γ_i, β_i are learnable (4 params each).
+  - |q_grad| = 0.007 → 0.018 (growing through training, circuit genuinely learning).
+  - Loss converged to 0.201. TEST_ACC=0.955. Above 0.95 target.
+  - Slightly lower than iter37 (CBN) — circuit-level normalisation makes optimisation harder
+    than post-circuit arithmetic normalisation, but this is the architecturally correct approach.
 
 ---
 
 ## BEST COMMITTED RESULT
-- **iter37 (0.9650):** QBN(16) → Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs
-- **iter30 (0.9750):** StatePrep + 2-layer CNOT ring (zero-init) + probs + MLP(64,32,2)+BN, 120 epochs, lr=0.004
+- **iter38 (0.9550):** True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2), lr=0.006, batch=300, 100 epochs
+- **iter30 (0.9750):** StatePrep + 2-layer CNOT ring (zero-init) + probs + MLP(64,32,2)+CBN, 120 epochs, lr=0.004
 - **iter9  (0.9700):** Same architecture, 80 epochs, lr=0.003

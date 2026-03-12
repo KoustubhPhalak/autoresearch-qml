@@ -43,7 +43,8 @@ experiments = [
     (34, 0.925, "DISCARD", "iter34: QBN+2 hidden layers\n64→32→2 (overfit)"),
     (35, 0.655, "DISCARD", "iter35: QBN+Linear(16,8)\n+ReLU+Linear(8,2)"),
     (36, 0.910, "DISCARD", "iter36: lr=0.01, batch=400\nQBN+16→8→2"),
-    (37, 0.965, "KEEP",    "iter37: QBN+Linear(16,256)\n+ReLU+Linear(256,2)"),
+    (37, 0.965, "DISCARD", "iter37: CBN(not QBN)+Linear(16,256)\n+ReLU+Linear(256,2)"),
+    (38, 0.955, "KEEP",    "iter38: True QBN (RY in circuit)\n+Linear(16,256)+ReLU+Linear(256,2)"),
 ]
 
 iters  = [e[0] for e in experiments]

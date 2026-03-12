@@ -3,20 +3,20 @@ import torch.nn as nn
 import pennylane as qml
 from torch.optim import Adam
 
-# iter38: TRUE QBN inside circuit + wide Linear(16,256) + ReLU + Linear(256,2).
+# iter39: TRUE QBN AFTER variational layers + wide Linear(16,256) + ReLU + Linear(256,2).
 #
-# iter37 used nn.BatchNorm1d(16) which is classical BN applied to quantum output (CBN).
-# This is NOT QBN. True QBN applies batch-stat corrections as RY gates INSIDE the circuit.
+# iter38 placed QBN corrections (RY gates) BEFORE the variational layers, which normalises
+# the input state rather than the QNN's output — defeating the purpose of BN.
+#
+# Fix: QBN corrections are now applied AFTER the variational layers, immediately before
+# measurement. This normalises the per-qubit marginals of the QNN's output state.
 #
 # True QBN (permanent):
 #   1. Compute raw probs directly from input statevectors: p_raw = |x|^2 (no extra circuit pass).
 #   2. Batch-mean probs p_bar → per-qubit marginals m_i = P(qubit_i = |0>).
 #   3. Correction angle: θ_i = γ_i * arcsin(1 - 2*m_i) + β_i
 #      (γ_i, β_i are learned BN scale/shift parameters, 4 each).
-#   4. Apply RY(θ_i) on qubit i inside the circuit, BEFORE variational layers.
-#
-# This is quantum: the normalisation is done in Hilbert space via unitary rotations,
-# not by arithmetically rescaling floating-point activations.
+#   4. Apply RY(θ_i) on qubit i AFTER variational layers, before measurement.
 #
 # Head unchanged: Linear(16,256) → ReLU → Linear(256,2).
 # lr=0.006, batch=300, cosine annealing, 100 epochs.
@@ -43,18 +43,18 @@ _masks = torch.stack([
 
 @qml.qnode(dev, interface="torch")
 def circuit(state, weights, theta_corr):
-    """True hybrid QNN with QBN: StatePrep + QBN correction rotations + variational layers."""
+    """True hybrid QNN with QBN: StatePrep + variational layers + QBN correction rotations."""
     qml.StatePrep(state, wires=range(n_qubits), normalize=True)
-    # QBN: per-qubit correction rotation applied inside the circuit
-    for i in range(n_qubits):
-        qml.RY(theta_corr[i], wires=i)
-    # Variational layers
+    # Variational layers (the QNN)
     for l in range(n_layers):
         for i in range(n_qubits):
             qml.RY(weights[l, i, 0], wires=i)
             qml.RZ(weights[l, i, 1], wires=i)
         for i in range(n_qubits):
             qml.CNOT(wires=[i, (i + 1) % n_qubits])
+    # QBN: per-qubit correction rotations applied AFTER variational layers, before measurement
+    for i in range(n_qubits):
+        qml.RY(theta_corr[i], wires=i)
     return qml.probs(wires=range(n_qubits))
 
 

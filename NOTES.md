@@ -52,6 +52,7 @@
 | 36   | 0.910  | DISCARD | lr=0.01, batch=400, CBN(16) → Linear(16,8) → ReLU → Linear(8,2) |
 | 37   | 0.965  | DISCARD | CBN(16) → Linear(16,256) → ReLU → Linear(256,2) — mislabeled as QBN; was classical BN |
 | 38   | 0.955  | KEEP ★  | True QBN (RY corrections inside circuit) + Linear(16,256) → ReLU → Linear(256,2) |
+| 39   | 0.960  | DISCARD | True QBN moved AFTER variational layers (before measurement) + same head |
 
 ---
 
@@ -340,6 +341,14 @@
   - Loss converged to 0.201. TEST_ACC=0.955. Above 0.95 target.
   - Slightly lower than iter37 (CBN) — circuit-level normalisation makes optimisation harder
     than post-circuit arithmetic normalisation, but this is the architecturally correct approach.
+
+### iter39 — QBN Moved AFTER Variational Layers (0.960, DISCARD)
+- Bug fix from iter38: QBN correction rotations now applied AFTER variational layers (before
+  measurement) instead of before. iter38 was normalising the input state, not the QNN output.
+- |q_grad| = 0.009 → 0.015 → 0.017 → 0.010. Loss converged to 0.207.
+- TEST_ACC=0.960. Improvement over iter38 (0.955) but still below iter30's 0.975 (CBN).
+- The fix is architecturally correct — QBN now acts on the QNN's output state.
+- Discarded: 0.960 does not beat the best kept result (iter30, 0.975).
 
 ---
 

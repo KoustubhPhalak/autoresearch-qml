@@ -1,5 +1,7 @@
 # autoresearch-qml
 
+![progress](progress.png)
+
 An autonomous quantum machine learning (QML) research framework that iterates overnight on hybrid quantum-classical circuit designs. Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch), adapted for quantum circuit classification instead of LLM training.
 
 ## What it does

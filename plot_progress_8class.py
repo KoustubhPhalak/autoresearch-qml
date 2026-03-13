@@ -30,6 +30,7 @@ iterations = [
     (22, 0.9750, "KEEP",    "100k/class, GPU"),
     (23, 0.9844, "KEEP",    "300k/class, 7-model ens."),
     (24, 0.9844, "KEEP",    "1M/class on-the-fly"),
+    (25, 0.9875, "KEEP",    "10-model ens., 768-384-192, 5k steps"),
 ]
 
 iters    = [x[0] for x in iterations]
@@ -72,10 +73,10 @@ ax.axhline(y=0.125, color="gray", linestyle=":", alpha=0.5, linewidth=1.0, label
 
 ax.set_xlabel("Experiment #", fontsize=13)
 ax.set_ylabel("Test Accuracy", fontsize=13)
-ax.set_title("NTangled 8-Class Classification: 24 Experiments\nKey: data augmentation from circuit weights → 13.1% → 98.44%",
+ax.set_title("NTangled 8-Class Classification: 25 Experiments\nKey: data augmentation from circuit weights → 13.1% → 98.75%",
              fontsize=13)
 ax.set_ylim(0.05, 1.05)
-ax.set_xlim(-1, 26)
+ax.set_xlim(-1, 28)
 ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.0%}'))
 ax.legend(loc="lower right", fontsize=10)
 ax.grid(True, alpha=0.2)

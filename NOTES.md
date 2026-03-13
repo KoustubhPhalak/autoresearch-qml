@@ -38,6 +38,7 @@
 | 22   | 0.9750 | KEEP    | 100000 extra/class (801280 total), GPU-accelerated features + training |
 | 23   | 0.9844 | KEEP    | 300000 extra/class (2.4M total), larger MLP variants, 7-model ensemble |
 | 24   | 0.9844 | KEEP    | 1M extra/class on-the-fly features; same ceiling as iter23 |
+| 25   | 0.9875 | KEEP    | 10-model ensemble, 5000 steps, 768-384-192 arch diversity; NEW BEST |
 
 ---
 
@@ -88,11 +89,19 @@
 - Individual models: 94.69–96.88%. Ensemble: 97.50%.
 - Matches the best binary-task result from the original project.
 
-### iter23 — Best result (0.9844, KEEP)
+### iter23 — Previous best (0.9844, KEEP)
 - 300000 extra per class = 2.4M training samples.
 - Larger MLP variants (512-256-128) in ensemble for diversity.
 - 7-model ensemble. Individual models: 93.75–96.88%. Ensemble: **98.44%**.
 - Near Bayes ceiling: more data (1M/class in iter24) gives same 98.44%.
+
+### iter25 — New best (0.9875, KEEP)
+- 300k extra/class (2.4M total), same as iter23.
+- 10-model ensemble (vs 7): added 768-384-192 arch for diversity.
+- 5000 gradient steps per model (vs 3000), CosineAnnealingWarmRestarts T_0=1250.
+- Individual models: 92.81–98.44%. Best single: 98.44% (arch=768).
+- Ensemble: **98.75%** — beats iter23/24 ceiling by 0.31%.
+- Key driver: architectural diversity in ensemble (768-384-192 model scored 98.44% solo).
 
 ---
 
@@ -113,4 +122,4 @@
 ---
 
 ## BEST COMMITTED RESULT
-- **iter23/iter24 (0.9844):** 300k–1M extra samples/class via HWE matrix generation + GPU + 7-model ensemble
+- **iter25 (0.9875):** 300k extra samples/class via HWE matrix generation + GPU + 10-model ensemble (incl. 768-384-192 arch) + 5000 steps

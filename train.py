@@ -5,15 +5,13 @@ import pennylane as qml
 import math
 from itertools import combinations
 
-# iter24: On-the-fly feature computation during training.
-# Precomputing 2.4M features (iter23) was the bottleneck.
-# With on-the-fly computation, we can use 1M+ samples per class.
-# The statevectors are much more compact than precomputed features.
-# Generate statevectors once; compute 39-dim features per mini-batch during training.
+# iter25: Push past 98.44% ceiling.
+# Try: (1) more training steps, (2) larger model, (3) larger ensemble (10 models).
+# 300k extra/class is the sweet spot data-wise.
 
 n_classes = 8
 N_QUBITS = 4
-EXTRA_PER_CLASS = 1000000
+EXTRA_PER_CLASS = 300000
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
@@ -65,7 +63,7 @@ def sample_product_states(n):
     return states
 
 
-print(f"Generating {EXTRA_PER_CLASS} samples per class...")
+print("Generating batch samples...")
 extra_X, extra_y = [], []
 for cls_id, key in enumerate(class_keys):
     w = trained_weights[key].double()
@@ -76,32 +74,31 @@ for cls_id, key in enumerate(class_keys):
     extra_y.append(torch.full((EXTRA_PER_CLASS,), cls_id, dtype=torch.long))
     print(f"  Class {cls_id}: done")
 
-X_train_aug = torch.cat([X_train] + extra_X, dim=0).to(device)  # on GPU
-y_train_aug  = torch.cat([y_train] + extra_y, dim=0).to(device)
-X_test_gpu   = X_test.to(device)
-y_test_gpu   = y_test.to(device)
-print(f"Augmented train size: {len(X_train_aug)} on {device}")
+X_train_aug = torch.cat([X_train] + extra_X, dim=0)
+y_train_aug  = torch.cat([y_train] + extra_y, dim=0)
+print(f"Augmented train size: {len(X_train_aug)}")
 
 
-def compute_features_batch(psi_batch):
-    """Compute 39-dim features on-the-fly for a batch. Input: [B, 16] complex on GPU."""
+def partial_trace_purity_gpu(psi_batch, subset):
+    B = psi_batch.shape[0]; n = 4; r = len(subset)
+    complement = [i for i in range(n) if i not in subset]
+    psi = psi_batch.view(B, 2, 2, 2, 2)
+    perm = [0] + [s + 1 for s in subset] + [c + 1 for c in complement]
+    psi = psi.permute(*perm).contiguous().view(B, 2 ** r, 2 ** (n - r))
+    if r <= n - r:
+        rho = torch.bmm(psi, psi.conj().transpose(1, 2))
+    else:
+        rho = torch.bmm(psi.conj().transpose(1, 2), psi)
+    return (rho.abs().pow(2)).sum(dim=[1, 2]).real
+
+
+def quantum_features_gpu(psi_batch):
+    psi_batch = psi_batch.to(device)
     probs = psi_batch.abs().pow(2).float()
-    total_purity = torch.full((len(psi_batch),), 2.0, device=psi_batch.device)
-    pfeat = []
+    total_purity = torch.full((len(psi_batch),), 2.0, device=device); pfeat = []
     for r in range(1, 4):
         for s in combinations(range(4), r):
-            B = len(psi_batch); n = 4
-            complement = [i for i in range(n) if i not in s]
-            psi = psi_batch.view(B, 2, 2, 2, 2)
-            perm = [0] + [sq + 1 for sq in s] + [c + 1 for c in complement]
-            psi_r = psi.permute(*perm).contiguous().view(B, 2 ** r, 2 ** (n - r))
-            if r <= n - r:
-                rho = torch.bmm(psi_r, psi_r.conj().transpose(1, 2))
-            else:
-                rho = torch.bmm(psi_r.conj().transpose(1, 2), psi_r)
-            p = (rho.abs().pow(2)).sum(dim=[1, 2]).real
-            pfeat.append(p)
-            total_purity += p
+            p = partial_trace_purity_gpu(psi_batch, s); pfeat.append(p); total_purity += p
     purities = torch.stack(pfeat, dim=1).float()
     ce = (1.0 - total_purity / 16.0).unsqueeze(1).float()
     B = len(psi_batch); psi = psi_batch.view(B, 2, 2, 2, 2); coh = []
@@ -113,9 +110,16 @@ def compute_features_batch(psi_batch):
     return torch.cat([probs, purities, ce, coh], dim=1)
 
 
-# Pre-compute test features (small, fast)
-with torch.no_grad():
-    X_test_f = compute_features_batch(X_test_gpu)
+print("Computing features on GPU...")
+chunk = 32768
+X_train_f = torch.cat([quantum_features_gpu(X_train_aug[i:i + chunk]).cpu()
+                        for i in range(0, len(X_train_aug), chunk)])
+X_test_f = quantum_features_gpu(X_test).cpu()
+print(f"Feature shape: {X_train_f.shape}")
+
+X_train_f_gpu = X_train_f.to(device)
+y_train_aug_gpu = y_train_aug.to(device)
+X_test_f_gpu = X_test_f.to(device)
 
 
 class MLP(nn.Module):
@@ -135,43 +139,44 @@ class MLP(nn.Module):
         return self.net(x)
 
 
+# 10 diverse models with larger architectures and more steps
 configs = [
-    (0.005, 42,  (256, 128, 64), (0.12, 0.08, 0.0)),
-    (0.005, 0,   (256, 128, 64), (0.12, 0.08, 0.0)),
-    (0.004, 123, (512, 256, 128),(0.10, 0.08, 0.05)),
-    (0.006, 7,   (256, 128, 64), (0.10, 0.06, 0.0)),
-    (0.005, 99,  (256, 128, 64), (0.12, 0.08, 0.0)),
-    (0.003, 13,  (512, 256, 128),(0.12, 0.10, 0.05)),
-    (0.007, 256, (256, 128, 64), (0.10, 0.05, 0.0)),
+    (0.005, 42,   (256, 128, 64), (0.12, 0.08, 0.0)),
+    (0.005, 0,    (256, 128, 64), (0.12, 0.08, 0.0)),
+    (0.004, 123,  (512, 256, 128),(0.10, 0.08, 0.05)),
+    (0.006, 7,    (256, 128, 64), (0.10, 0.06, 0.0)),
+    (0.005, 99,   (256, 128, 64), (0.12, 0.08, 0.0)),
+    (0.003, 13,   (512, 256, 128),(0.12, 0.10, 0.05)),
+    (0.007, 256,  (256, 128, 64), (0.10, 0.05, 0.0)),
+    (0.004, 1000, (768, 384, 192),(0.10, 0.08, 0.05)),
+    (0.005, 2023, (256, 128, 64), (0.15, 0.10, 0.0)),
+    (0.006, 77,   (512, 256, 64), (0.12, 0.08, 0.0)),
 ]
 
 all_logits = []
-n_train = len(X_train_aug)
+n_train = len(X_train_f_gpu)
 loss_fn = nn.CrossEntropyLoss()
-steps = 3000
+steps = 5000
 
 for lr, seed, hidden, dropouts in configs:
     torch.manual_seed(seed)
     model = MLP(hidden, dropouts).to(device)
     optimizer = Adam(model.parameters(), lr=lr, weight_decay=5e-5)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=750, T_mult=2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=1250, T_mult=2)
 
     for step in range(steps):
         model.train()
         idx = torch.randperm(n_train, device=device)[:4096]
-        batch_psi = X_train_aug[idx]
-        with torch.no_grad():
-            batch_f = compute_features_batch(batch_psi)
-        logits = model(batch_f)
-        loss = loss_fn(logits, y_train_aug[idx])
+        logits = model(X_train_f_gpu[idx])
+        loss = loss_fn(logits, y_train_aug_gpu[idx])
         optimizer.zero_grad(); loss.backward(); optimizer.step()
         scheduler.step()
 
     model.eval()
     with torch.no_grad():
-        logits = model(X_test_f).cpu()
+        logits = model(X_test_f_gpu).cpu()
         acc = (logits.argmax(dim=1) == y_test).float().mean().item()
-    print(f"  lr={lr} seed={seed}: TEST_ACC={acc:.4f}")
+    print(f"  lr={lr} seed={seed} arch={hidden[0]}: TEST_ACC={acc:.4f}")
     all_logits.append(logits)
 
 ens_logits = torch.stack(all_logits).mean(dim=0)

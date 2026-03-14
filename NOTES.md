@@ -37,6 +37,11 @@
 | 18 | Open boundary only (clean transition) | **1.0000** | Perfect — no label noise |
 | 19 | Threshold sweep open+closed | 0.9672 | All thresholds hit same ceiling |
 | 20 | Open boundary clean run | **1.0000** | Confirmed perfect |
+| 21 | 9q with periodicity encoding (combined) | 0.9672 | Same ceiling |
+| 22 | Vacuum overlap analysis (combined) | 0.9836 | Brief peak at 98.36% |
+| 23 | 3-model ensemble (combined) | 0.9672 | Ensemble didn't help |
+| 24 | 2 layers + Z/X obs + weighted loss | 0.9836 | Brief peak again |
+| **25** | **5-run sweep, best seed (combined)** | **0.9836** | **60/61 correct, 1 label noise** |
 
 ## Classical Baselines
 - RF on Z-probs (3-class): 1.0000 — but uses label info unavailable to quantum

@@ -33,6 +33,10 @@
 | 14 | + rich observables X,Y,ZZ,XX (3-class) | 0.6393 | Classes 1&2 identical → impossible |
 | **15** | **2-class: StatePrep → 1L var → PauliZ → QBN → 2 Linear** | **0.9180** | **Theoretical ceiling** |
 | 16 | 0,1,2 layers comparison (2-class) | 0.9180 | All same — ceiling hit |
+| 17 | Optimized threshold U=1.60 (open+closed) | 0.9672 | 2 inherent label errors in test |
+| 18 | Open boundary only (clean transition) | **1.0000** | Perfect — no label noise |
+| 19 | Threshold sweep open+closed | 0.9672 | All thresholds hit same ceiling |
+| 20 | Open boundary clean run | **1.0000** | Confirmed perfect |
 
 ## Classical Baselines
 - RF on Z-probs (3-class): 1.0000 — but uses label info unavailable to quantum

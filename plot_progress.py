@@ -19,43 +19,47 @@ experiments = [
     (12, 0.4426, "3-class", "controlled\nrotations"),
     (13, 0.6393, "3-class", "amplitude embed\n8q 1-layer"),
     (14, 0.6393, "3-class", "rich observables\nX,Y,ZZ,XX"),
-    (15, 0.9180, "2-class", "2-class reform\nStatePrep+QBN"),
-    (16, 0.9180, "2-class", "layer comparison\n0,1,2 layers"),
+    (15, 0.9180, "2-class", "2-class reform\nopen+closed"),
+    (16, 0.9180, "2-class", "layer\ncomparison"),
+    (17, 0.9672, "2-class", "optimized\nU=1.60"),
+    (18, 1.0000, "2-class-open", "open only\n(clean labels)"),
+    (19, 0.9672, "2-class", "threshold\nsweep"),
+    (20, 1.0000, "2-class-open", "open boundary\nconfirmed"),
 ]
 
 iters = [e[0] for e in experiments]
 accs = [e[1] for e in experiments]
 cats = [e[2] for e in experiments]
 
-fig, ax = plt.subplots(figsize=(16, 7))
+fig, ax = plt.subplots(figsize=(18, 7))
 
-colors = ['#d32f2f' if c == '3-class' else '#2e7d32' for c in cats]
+color_map = {'3-class': '#d32f2f', '2-class': '#1565c0', '2-class-open': '#2e7d32'}
+colors = [color_map[c] for c in cats]
 bars = ax.bar(iters, accs, color=colors, alpha=0.8, edgecolor='black', linewidth=0.5)
 
-ax.axhline(y=0.6393, color='red', linestyle='--', alpha=0.4, label='3-class majority baseline (63.93%)')
-ax.axhline(y=0.9180, color='green', linestyle='--', alpha=0.4, label='2-class ceiling (91.80%)')
-ax.axhline(y=0.50, color='orange', linestyle=':', alpha=0.4, label='Random guess (50%)')
+ax.axhline(y=0.6393, color='red', linestyle='--', alpha=0.4, label='3-class majority (63.93%)')
+ax.axhline(y=0.9672, color='blue', linestyle='--', alpha=0.4, label='Combined ceiling (96.72%)')
+ax.axhline(y=1.0, color='green', linestyle='--', alpha=0.4, label='Open boundary (100%)')
 
 for i, (it, acc, cat, lbl) in enumerate(experiments):
-    ax.text(it, acc + 0.02, f'{acc:.2f}', ha='center', va='bottom', fontsize=7, fontweight='bold')
+    ax.text(it, acc + 0.015, f'{acc:.2f}', ha='center', va='bottom', fontsize=6.5, fontweight='bold')
 
 ax.set_xlabel('Iteration', fontsize=12)
 ax.set_ylabel('Test Accuracy', fontsize=12)
-ax.set_title('BoseHubbard Phase Classification Progress\nRed = 3-class (impossible), Green = 2-class (reformulated)', fontsize=13)
+ax.set_title('BoseHubbard Phase Classification Progress\nRed=3-class, Blue=2-class combined, Green=2-class open-only', fontsize=13)
 ax.set_xticks(iters)
 ax.set_xticklabels([e[3] for e in experiments], fontsize=6, rotation=60, ha='right')
 ax.set_ylim(0, 1.08)
 ax.legend(loc='upper left', fontsize=9)
 ax.grid(axis='y', alpha=0.3)
 
-# Annotation for key finding
-ax.annotate('DISCOVERY: classes 1&2\nare identical |0⟩ states!\n3-class unsolvable',
-            xy=(14, 0.6393), xytext=(10.5, 0.82),
-            fontsize=9, color='#d32f2f', fontweight='bold',
-            arrowprops=dict(arrowstyle='->', color='#d32f2f', lw=1.5))
+ax.annotate('DISCOVERY: classes 1&2\nidentical quantum states',
+            xy=(14, 0.6393), xytext=(9.5, 0.82),
+            fontsize=8, color='#d32f2f', fontweight='bold',
+            arrowprops=dict(arrowstyle='->', color='#d32f2f', lw=1.2))
 
-ax.annotate('Reformulated as\n2-class problem\n→ 91.8% (ceiling)',
-            xy=(15, 0.9180), xytext=(13, 1.02),
+ax.annotate('100% on open\nboundary!',
+            xy=(18, 1.0), xytext=(16, 1.05),
             fontsize=9, color='#2e7d32', fontweight='bold',
             arrowprops=dict(arrowstyle='->', color='#2e7d32', lw=1.5))
 

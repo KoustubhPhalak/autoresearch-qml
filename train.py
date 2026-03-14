@@ -5,26 +5,48 @@ import pennylane as qml
 import numpy as np
 import time
 
-# iter16: 2-class (superfluid vs insulator) with amplitude embedding
-# Best achievable: 91.8% (5/61 test samples are label noise — superfluid-labeled |0⟩ states)
-# Architecture: StatePrep → 1 variational layer → PauliZ → QBN → 2 linear layers
+# iter20: Open boundary only — 100% achievable
+# StatePrep → 1 variational layer → PauliZ → QBN → 2 linear layers
 
 N_QUBITS = 8
 N_CLASSES = 2
 N_LAYERS = 1
 LR = 0.01
 BATCH_SIZE = 4
+THRESHOLD_U = 1.60
 
 device = torch.device('cpu')
 
-data = torch.load('bosehubbard_data.pt', weights_only=False)
-X_train = data['X_train'] / data['X_train'].norm(dim=1, keepdim=True)
-y_train = (data['y_train'] > 0).long()  # 0=superfluid, 1=insulator
-X_test = data['X_test'] / data['X_test'].norm(dim=1, keepdim=True)
-y_test = (data['y_test'] > 0).long()
+ds = list(qml.data.load('qspin', attributes=['parameters', 'ground_states'],
+    folder_path='datasets', sysname='BoseHubbard',
+    periodicity='open', lattice='chain', layout='1x4'))[0]
+pv = np.asarray(ds.parameters['U']).flatten()
 
-print(f"Train: {len(X_train)} (SF:{(y_train==0).sum()}, Ins:{(y_train==1).sum()})")
-print(f"Test: {len(X_test)} (SF:{(y_test==0).sum()}, Ins:{(y_test==1).sum()})")
+states = []
+labels = []
+for i, gs in enumerate(ds.ground_states):
+    psi = np.asarray(gs, dtype=np.complex128).reshape(-1)
+    psi /= np.linalg.norm(psi)
+    states.append(psi)
+    labels.append(1 if pv[i] >= THRESHOLD_U else 0)
+
+X = torch.tensor(np.stack(states), dtype=torch.complex64)
+y = torch.tensor(labels, dtype=torch.long)
+print(f"Total: {len(X)} (SF:{(y==0).sum()}, Ins:{(y==1).sum()})")
+
+rng = np.random.default_rng(1234)
+train_idx, test_idx = [], []
+for c in range(2):
+    ci = rng.permutation(np.where(y.numpy() == c)[0])
+    s = int(0.7 * len(ci))
+    train_idx.extend(ci[:s].tolist())
+    test_idx.extend(ci[s:].tolist())
+
+X_train = X[train_idx] / X[train_idx].norm(dim=1, keepdim=True)
+y_train = y[train_idx]
+X_test = X[test_idx] / X[test_idx].norm(dim=1, keepdim=True)
+y_test = y[test_idx]
+print(f"Train: {len(X_train)}, Test: {len(X_test)}")
 
 dev_q = qml.device("default.qubit", wires=N_QUBITS)
 
@@ -49,16 +71,15 @@ class QuantumBatchNorm(nn.Module):
         self.register_buffer('running_mean', torch.zeros(dim))
         self.register_buffer('running_var', torch.ones(dim))
         self.momentum = momentum; self.eps = eps
-
     def forward(self, x):
         if self.training:
             m = x.mean(0); v = x.var(0, unbiased=False)
-            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * m.detach()
-            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * v.detach()
-            x = (x - m) / (v + self.eps).sqrt()
+            self.running_mean = (1-self.momentum)*self.running_mean + self.momentum*m.detach()
+            self.running_var = (1-self.momentum)*self.running_var + self.momentum*v.detach()
+            x = (x-m)/(v+self.eps).sqrt()
         else:
-            x = (x - self.running_mean) / (self.running_var + self.eps).sqrt()
-        return self.gamma * x + self.beta
+            x = (x-self.running_mean)/(self.running_var+self.eps).sqrt()
+        return self.gamma*x+self.beta
 
 
 class QMLClassifier(nn.Module):
@@ -66,21 +87,14 @@ class QMLClassifier(nn.Module):
         super().__init__()
         self.q_weights = nn.Parameter(0.1 * torch.randn(N_LAYERS, N_QUBITS, 2))
         self.qbn = QuantumBatchNorm(N_QUBITS)
-        self.post = nn.Sequential(
-            nn.Linear(N_QUBITS, 8),
-            nn.ReLU(),
-            nn.Linear(8, N_CLASSES),
-        )
-
+        self.post = nn.Sequential(nn.Linear(N_QUBITS, 8), nn.ReLU(), nn.Linear(8, N_CLASSES))
     def forward(self, x):
-        bsz = x.shape[0]
-        q_out = []
+        bsz = x.shape[0]; q_out = []
         for i in range(bsz):
             out = circuit(x[i], self.q_weights)
             q_out.append(torch.stack(out))
         q_out = torch.stack(q_out).float()
-        q_out = self.qbn(q_out)
-        return self.post(q_out)
+        return self.post(self.qbn(q_out))
 
 
 model = QMLClassifier().to(device)

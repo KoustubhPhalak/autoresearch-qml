@@ -1,331 +1,494 @@
 """
-NTangled-style quantum dataset generator
-=========================================
-Follows the methodology of Schatzki et al. (2021) — arXiv:2109.03400
+Quantum Circuit Compilation — Benchmark & Baseline Preparation
+===============================================================
+Runs ONCE before the RL agent loop.
 
-Pipeline:
-  1. Sample Haar-random product-state inputs
-  2. Train a parameterized quantum circuit (PQC) so output states
-     match a target concentratable entanglement (CE) value
-  3. Materialize a dataset of statevectors + labels from trained generators
+Generates:
+  1. Random Haar unitaries (100 each for 3, 4, 5 qubits)
+  2. QFT unitaries (3–5 qubits)
+  3. Grover oracle unitaries (3–5 qubits, multiple marked states)
+  4. Hamiltonian simulation unitaries (Heisenberg & transverse-field Ising)
 
-CE definition follows Beckey et al. (arXiv:2104.06923), Definition 1:
-  CE(|ψ⟩) = 1 - (1/2^n) * Σ_α Tr(ρ_α²)
-No extra normalisation prefactor.  CE(|GHZ_n⟩) = 1/2 - 1/2^n.
+Computes baselines:
+  - Qiskit transpiler gate counts at optimization levels 0–3
+    (IBM-native: CX + U3;  Google-native: CZ + single-qubit)
+  - KAK decomposition gate counts for 2-qubit unitary sub-blocks
 
-Notes:
-  - Uses a hardware-efficient brick-layer ansatz with even/odd CZ
-    entangling pairs.  Same rotation parameters are applied to both
-    sublayers within each depth block, matching the repo pseudocode.
-  - Product-state inputs are Haar-random on each qubit's Bloch sphere.
-  - This is the trained-generator NTangled dataset, NOT the separate
-    depth-learning benchmark from Section V of the paper.
+Saves everything to  benchmark_data.pt  for the RL agent.
 """
 
+import time
 import math
 import itertools
 import numpy as np
+from scipy.stats import unitary_group
+
 import torch
-import pennylane as qml
-from sklearn.model_selection import train_test_split
+from qiskit import QuantumCircuit, transpile
+from qiskit.quantum_info import Operator, random_unitary
+from qiskit.synthesis import TwoQubitBasisDecomposer
+from qiskit.circuit.library import UnitaryGate, QFT as QiskitQFT
+from qiskit.providers.fake_provider import GenericBackendV2
 
 # ─────────────────────────────────────────────
 # Configuration
 # ─────────────────────────────────────────────
-N_QUBITS = 4
-ANSATZ_DEPTHS = [1, 4]
-TARGET_CES = [0.05, 0.15, 0.25, 0.35]  # matches released 4-qubit HWE target values
-SAMPLES_PER_GENERATOR = 200
+SEED = 42
+N_HAAR_SAMPLES = 100          # per qubit count
+QUBIT_RANGE = [3, 4, 5]
+GROVER_MARKED_STATES = 3      # number of distinct marked-state oracles per qubit count
+TROTTER_STEPS = [1, 2, 4]     # for Hamiltonian simulation circuits
+QISKIT_OPT_LEVELS = [0, 1, 2, 3]
 
-TRAIN_STEPS = 300
-BATCH_SIZE = 16
-LR = 5e-2
-SEED = 1234
-
-torch.manual_seed(SEED)
 np.random.seed(SEED)
-torch.set_default_dtype(torch.float64)
-
-dev = qml.device("default.qubit", wires=N_QUBITS)
+torch.manual_seed(SEED)
 
 
 # ─────────────────────────────────────────────
-# Concentratable entanglement (exact, pure state)
+# Unitary Generators
 # ─────────────────────────────────────────────
-def concentratable_entanglement(state, n_qubits=N_QUBITS):
+
+def generate_haar_unitaries(n_qubits: int, n_samples: int) -> list[np.ndarray]:
+    """Sample Haar-random unitaries from the circular unitary ensemble."""
+    dim = 2 ** n_qubits
+    return [unitary_group.rvs(dim) for _ in range(n_samples)]
+
+
+def generate_qft_unitary(n_qubits: int) -> np.ndarray:
+    """Return the exact QFT unitary matrix for n qubits."""
+    N = 2 ** n_qubits
+    omega = np.exp(2j * np.pi / N)
+    rows = np.arange(N)
+    U = omega ** np.outer(rows, rows) / np.sqrt(N)
+    return U
+
+
+def generate_grover_oracle(n_qubits: int, marked_state: int) -> np.ndarray:
     """
-    Exact CE for an n-qubit pure statevector (Beckey et al., Def. 1):
-
-        CE(|ψ⟩) = 1 - (1/2^n) * Σ_α Tr(ρ_α²)
-
-    where the sum runs over all 2^n subsets α ⊆ {0, …, n-1}.
-
-    No extra normalisation prefactor — this matches Beckey's definition
-    directly. For reference, CE(|GHZ_n⟩) = 1/2 - 1/2^n (= 7/16 at n=4).
-
-    For the empty set and full system, Tr(ρ²) = 1 (pure state),
-    so we add those analytically and skip the density-matrix work.
+    Grover oracle: flips the phase of |marked_state⟩.
+    U_oracle = I - 2|m⟩⟨m|
     """
     dim = 2 ** n_qubits
+    U = np.eye(dim, dtype=complex)
+    U[marked_state, marked_state] = -1.0
+    return U
 
-    # Empty set (r=0) and full system (r=n) each contribute purity 1
-    total = state.real.new_tensor(2.0)
 
-    for r in range(1, n_qubits):
-        for subset in itertools.combinations(range(n_qubits), r):
-            rho = qml.math.reduce_statevector(state, indices=list(subset))
-            purity = qml.math.real(qml.math.trace(rho @ rho))
-            total = total + purity
+def generate_grover_diffusion(n_qubits: int) -> np.ndarray:
+    """
+    Grover diffusion operator: 2|s⟩⟨s| - I  where |s⟩ = H^{⊗n}|0⟩.
+    """
+    dim = 2 ** n_qubits
+    s = np.ones(dim, dtype=complex) / np.sqrt(dim)
+    return 2.0 * np.outer(s, s.conj()) - np.eye(dim, dtype=complex)
 
-    return 1.0 - total / dim
+
+def generate_grover_iterate(n_qubits: int, marked_state: int) -> np.ndarray:
+    """Single Grover iterate G = D · O."""
+    O = generate_grover_oracle(n_qubits, marked_state)
+    D = generate_grover_diffusion(n_qubits)
+    return D @ O
+
+
+def heisenberg_hamiltonian(n_qubits: int, J: float = 1.0, h: float = 0.5) -> np.ndarray:
+    """
+    1D Heisenberg XXX chain with longitudinal field:
+      H = J Σ_i (X_i X_{i+1} + Y_i Y_{i+1} + Z_i Z_{i+1}) + h Σ_i Z_i
+    Returns the full 2^n × 2^n matrix.
+    """
+    dim = 2 ** n_qubits
+    X = np.array([[0, 1], [1, 0]], dtype=complex)
+    Y = np.array([[0, -1j], [1j, 0]], dtype=complex)
+    Z = np.array([[1, 0], [0, -1]], dtype=complex)
+    I = np.eye(2, dtype=complex)
+
+    def kron_op(op, qubit, nq):
+        """Place single-qubit operator on given qubit in nq-qubit space."""
+        ops = [I] * nq
+        ops[qubit] = op
+        result = ops[0]
+        for o in ops[1:]:
+            result = np.kron(result, o)
+        return result
+
+    def kron_two(op1, q1, op2, q2, nq):
+        ops = [I] * nq
+        ops[q1] = op1
+        ops[q2] = op2
+        result = ops[0]
+        for o in ops[1:]:
+            result = np.kron(result, o)
+        return result
+
+    H = np.zeros((dim, dim), dtype=complex)
+    for i in range(n_qubits - 1):
+        H += J * (kron_two(X, i, X, i + 1, n_qubits)
+                   + kron_two(Y, i, Y, i + 1, n_qubits)
+                   + kron_two(Z, i, Z, i + 1, n_qubits))
+    for i in range(n_qubits):
+        H += h * kron_op(Z, i, n_qubits)
+    return H
+
+
+def tfim_hamiltonian(n_qubits: int, J: float = 1.0, g: float = 1.0) -> np.ndarray:
+    """
+    Transverse-field Ising model (1D, open boundary):
+      H = -J Σ_i Z_i Z_{i+1}  -  g Σ_i X_i
+    """
+    dim = 2 ** n_qubits
+    X = np.array([[0, 1], [1, 0]], dtype=complex)
+    Z = np.array([[1, 0], [0, -1]], dtype=complex)
+    I = np.eye(2, dtype=complex)
+
+    def kron_op(op, qubit, nq):
+        ops = [I] * nq
+        ops[qubit] = op
+        result = ops[0]
+        for o in ops[1:]:
+            result = np.kron(result, o)
+        return result
+
+    def kron_two(op1, q1, op2, q2, nq):
+        ops = [I] * nq
+        ops[q1] = op1
+        ops[q2] = op2
+        result = ops[0]
+        for o in ops[1:]:
+            result = np.kron(result, o)
+        return result
+
+    H = np.zeros((dim, dim), dtype=complex)
+    for i in range(n_qubits - 1):
+        H -= J * kron_two(Z, i, Z, i + 1, n_qubits)
+    for i in range(n_qubits):
+        H -= g * kron_op(X, i, n_qubits)
+    return H
+
+
+def trotter_unitary(hamiltonian: np.ndarray, t: float, steps: int) -> np.ndarray:
+    """
+    First-order Trotter approximation:  U(t) ≈ (e^{-iHt/n})^n
+    Uses exact matrix exponentiation for each Trotter step.
+    """
+    from scipy.linalg import expm
+    dt = t / steps
+    U_step = expm(-1j * hamiltonian * dt)
+    U = np.eye(hamiltonian.shape[0], dtype=complex)
+    for _ in range(steps):
+        U = U_step @ U
+    return U
 
 
 # ─────────────────────────────────────────────
-# Random product-state input distribution
+# Qiskit Baseline Compilation
 # ─────────────────────────────────────────────
-def sample_product_state_angles(batch_size, n_qubits=N_QUBITS):
+
+def unitary_to_circuit(U: np.ndarray, n_qubits: int) -> QuantumCircuit:
+    """Wrap a unitary matrix into a Qiskit QuantumCircuit."""
+    qc = QuantumCircuit(n_qubits)
+    qc.unitary(U, list(range(n_qubits)))
+    return qc
+
+
+def count_gates(transpiled_circuit: QuantumCircuit) -> dict:
     """
-    Haar-random single-qubit states for each qubit.
-
-    Parameterisation: |ψ⟩ = RZ(φ) RY(θ) |0⟩
-      φ  ~ Uniform[0, 2π)
-      θ  = arccos(z),  z ~ Uniform[-1, 1]
-
-    Returns: Tensor [batch, n_qubits, 2]  (last dim = [φ, θ])
+    Count gates in a transpiled circuit.
+    Returns dict with total gates, two-qubit gates, depth, and per-gate-type counts.
     """
-    phi = 2.0 * math.pi * torch.rand(batch_size, n_qubits)
-    z = 2.0 * torch.rand(batch_size, n_qubits) - 1.0
-    theta = torch.arccos(torch.clamp(z, -1.0, 1.0))
-    return torch.stack([phi, theta], dim=-1)
+    ops = transpiled_circuit.count_ops()
+    two_q_gates = {"cx", "cz", "ecr", "rzz", "rxx", "ryy", "swap", "iswap"}
+    n_two_qubit = sum(v for k, v in ops.items() if k in two_q_gates)
+    n_total = sum(ops.values())
+    return {
+        "total_gates": n_total,
+        "two_qubit_gates": n_two_qubit,
+        "depth": transpiled_circuit.depth(),
+        "gate_counts": dict(ops),
+    }
 
 
-# ─────────────────────────────────────────────
-# Hardware-efficient ansatz (even/odd brick-layer CZ)
-# ─────────────────────────────────────────────
-def hwe_ansatz(weights, n_qubits=N_QUBITS):
+def compile_baselines_qiskit(
+    U: np.ndarray,
+    n_qubits: int,
+    label: str,
+    opt_levels: list[int] = QISKIT_OPT_LEVELS,
+) -> dict:
     """
-    Hardware-efficient brick-layer ansatz matching the NTangled repo
-    generator pseudocode:
-      Per depth block d:
-        1. U3(θ_{d,q}) on every qubit q
-        2. CZ on even pairs: (0,1), (2,3), …
-        3. U3(θ_{d,q}) on every qubit q   (same parameters reused)
-        4. CZ on odd pairs:  (1,2), (3,4), …
-
-    weights shape: [depth, n_qubits, 3]
-      The repo pseudocode shows a single θ_{d,i,0:3} tensor per depth
-      layer, applied to both rotation sublayers within that block.
+    Transpile a unitary at each Qiskit optimization level for both
+    IBM-native (CX basis) and Google-native (CZ basis) gate sets.
+    Records gate counts and wall-clock compilation time.
     """
-    depth = weights.shape[0]
-    for d in range(depth):
-        for q in range(n_qubits):
-            a, b, c = weights[d, q]
-            qml.Rot(a, b, c, wires=q)
-        for q in range(0, n_qubits - 1, 2):
-            qml.CZ(wires=[q, q + 1])
-        for q in range(n_qubits):
-            a, b, c = weights[d, q]
-            qml.Rot(a, b, c, wires=q)
-        for q in range(1, n_qubits - 1, 2):
-            qml.CZ(wires=[q, q + 1])
+    results = {}
 
+    basis_sets = {
+        "ibm": ["cx", "id", "rz", "sx", "x"],
+        "google": ["cz", "id", "rx", "ry", "rz"],
+    }
 
-@qml.qnode(dev, interface="torch", diff_method="backprop")
-def generator_circuit(weights, input_angles):
-    """
-    Full generator: random product-state input → HWE ansatz → output state.
-    """
-    n_qubits = weights.shape[1]
-    for q in range(n_qubits):
-        phi, theta = input_angles[q]
-        qml.RY(theta, wires=q)
-        qml.RZ(phi, wires=q)
-    hwe_ansatz(weights, n_qubits=n_qubits)
-    return qml.state()
+    qc = unitary_to_circuit(U, n_qubits)
 
-
-# ─────────────────────────────────────────────
-# Training
-# ─────────────────────────────────────────────
-def batch_ce_loss(weights, batch_inputs, target_ce):
-    """MSE between realised CE and target CE over a batch of product-state inputs."""
-    target = torch.as_tensor(target_ce, dtype=weights.dtype)
-    losses = []
-    for x in batch_inputs:
-        state = generator_circuit(weights, x)
-        ce = concentratable_entanglement(state)
-        losses.append((ce - target) ** 2)
-    return torch.mean(torch.stack(losses))
-
-
-def train_generator(
-    target_ce,
-    depth,
-    n_qubits=N_QUBITS,
-    steps=TRAIN_STEPS,
-    batch_size=BATCH_SIZE,
-    lr=LR,
-):
-    """
-    Train a single HWE generator to produce states with a given CE.
-    Returns the best weights found during training.
-    """
-    weights = (2.0 * math.pi * torch.rand(depth, n_qubits, 3)).requires_grad_()
-    opt = torch.optim.Adam([weights], lr=lr)
-
-    best_weights = None
-    best_loss = float("inf")
-
-    for step in range(steps):
-        batch_inputs = sample_product_state_angles(batch_size, n_qubits=n_qubits)
-        loss = batch_ce_loss(weights, batch_inputs, target_ce)
-
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
-
-        loss_val = float(loss.detach().cpu())
-        if loss_val < best_loss:
-            best_loss = loss_val
-            best_weights = weights.detach().clone()
-
-        if step % 50 == 0 or step == steps - 1:
+    for hw_name, basis_gates in basis_sets.items():
+        for opt_level in opt_levels:
+            key = f"{hw_name}_opt{opt_level}"
+            t0 = time.perf_counter()
+            try:
+                transpiled = transpile(
+                    qc,
+                    basis_gates=basis_gates,
+                    optimization_level=opt_level,
+                    seed_transpiler=SEED,
+                )
+                wall_time = time.perf_counter() - t0
+                gate_info = count_gates(transpiled)
+                results[key] = {
+                    **gate_info,
+                    "wall_time_s": wall_time,
+                    "success": True,
+                }
+            except Exception as e:
+                wall_time = time.perf_counter() - t0
+                results[key] = {
+                    "total_gates": -1,
+                    "two_qubit_gates": -1,
+                    "depth": -1,
+                    "gate_counts": {},
+                    "wall_time_s": wall_time,
+                    "success": False,
+                    "error": str(e),
+                }
             print(
-                f"  [depth={depth}  target_ce={target_ce:.2f}]  "
-                f"step {step:03d}  loss={loss_val:.6f}"
+                f"    {label:30s}  {key:16s}  "
+                f"total={results[key]['total_gates']:4d}  "
+                f"2q={results[key]['two_qubit_gates']:3d}  "
+                f"time={results[key]['wall_time_s']:.3f}s"
             )
 
-    print(f"  Best loss: {best_loss:.6f}")
-    return best_weights
+    return results
 
 
 # ─────────────────────────────────────────────
-# Dataset materialisation
+# KAK Decomposition Baseline (2-qubit sub-blocks)
 # ─────────────────────────────────────────────
-def materialize_states(trained_weights, n_states, n_qubits=N_QUBITS):
+
+def kak_baseline_two_qubit(U_4x4: np.ndarray) -> dict:
     """
-    Feed fresh random product-state inputs through a trained generator
-    and record the output statevectors and their realised CE values.
+    Decompose a 2-qubit unitary via Qiskit's TwoQubitBasisDecomposer (KAK).
+    Returns gate count info for CX-basis decomposition.
     """
-    states = []
-    ces = []
-
-    for _ in range(n_states):
-        x = sample_product_state_angles(1, n_qubits=n_qubits)[0]
-        with torch.no_grad():
-            state = generator_circuit(trained_weights, x)
-            ce = concentratable_entanglement(state, n_qubits=n_qubits)
-
-        states.append(state.cpu().numpy())
-        ces.append(float(ce.cpu()))
-
-    return np.asarray(states), np.asarray(ces)
+    from qiskit.quantum_info import Operator
+    from qiskit.circuit.library import CXGate
+    try:
+        decomposer = TwoQubitBasisDecomposer(
+            gate=CXGate(),
+            euler_basis="ZSX",
+        )
+        qc = decomposer(Operator(U_4x4).data)
+        return {
+            **count_gates(qc),
+            "success": True,
+        }
+    except Exception as e:
+        return {
+            "total_gates": -1,
+            "two_qubit_gates": -1,
+            "depth": -1,
+            "gate_counts": {},
+            "success": False,
+            "error": str(e),
+        }
 
 
 # ─────────────────────────────────────────────
-# Full dataset builder
+# Process Fidelity Helper
 # ─────────────────────────────────────────────
-def build_ntangled_dataset(
-    depths=ANSATZ_DEPTHS,
-    target_ces=TARGET_CES,
-    samples_per_generator=SAMPLES_PER_GENERATOR,
-    n_qubits=N_QUBITS,
-    test_size=0.2,
-    save_path="ntangled_states.pt",
-):
+
+def process_fidelity(U_target: np.ndarray, U_compiled: np.ndarray) -> float:
     """
-    Train one generator per (depth, target_ce) pair, materialise states,
-    and package everything into a single .pt file.
-
-    Label convention:
-        class_id = sequential integer per (depth, target_ce) combination.
-
-    Saved metadata includes target CE, generator depth, and realised CE
-    per sample so downstream tasks can define their own label splits
-    (e.g. binary low/high CE, multi-class by CE bucket, regression, etc.).
+    Average gate fidelity proxy:
+      F = |Tr(U_target† · U_compiled)|² / d²
+    where d = dimension.
     """
-    all_X, all_y = [], []
-    all_target_ce, all_depth, all_realized_ce = [], [], []
-    trained_weights = {}
+    d = U_target.shape[0]
+    return abs(np.trace(U_target.conj().T @ U_compiled)) ** 2 / d ** 2
 
-    class_id = 0
-    for depth in depths:
-        for tce in target_ces:
-            print(f"\n{'='*60}")
-            print(f"Training generator:  depth={depth}  target_ce={tce:.2f}")
-            print(f"{'='*60}")
 
-            w = train_generator(target_ce=tce, depth=depth, n_qubits=n_qubits)
-            key = f"depth_{depth}_ce_{int(round(tce * 100)):03d}"
-            trained_weights[key] = w.cpu()
+# ─────────────────────────────────────────────
+# Main Dataset Builder
+# ─────────────────────────────────────────────
 
-            states, ces = materialize_states(w, samples_per_generator, n_qubits=n_qubits)
+def build_benchmark_dataset(save_path: str = "benchmark_data.pt"):
+    """
+    Generate all benchmark unitaries, compute Qiskit baselines, and save.
+    """
+    import qiskit  # ensure available
 
-            all_X.append(states)
-            all_y.append(np.full(samples_per_generator, class_id, dtype=np.int64))
-            all_target_ce.append(np.full(samples_per_generator, tce))
-            all_depth.append(np.full(samples_per_generator, depth, dtype=np.int64))
-            all_realized_ce.append(ces)
+    benchmarks = {}  # keyed by (category, n_qubits, index)
 
-            mean_ce = ces.mean()
-            std_ce = ces.std()
-            print(f"  Realised CE:  {mean_ce:.4f} ± {std_ce:.4f}  (target {tce:.2f})")
+    # ── 1. Random Haar Unitaries ──
+    print("\n" + "=" * 70)
+    print("GENERATING RANDOM HAAR UNITARIES")
+    print("=" * 70)
+    for nq in QUBIT_RANGE:
+        print(f"\n  n_qubits = {nq}  ({N_HAAR_SAMPLES} samples)")
+        unitaries = generate_haar_unitaries(nq, N_HAAR_SAMPLES)
+        for i, U in enumerate(unitaries):
+            label = f"haar_q{nq}_{i:03d}"
+            baselines = compile_baselines_qiskit(U, nq, label)
+            benchmarks[label] = {
+                "unitary": U,
+                "n_qubits": nq,
+                "category": "haar",
+                "baselines": baselines,
+            }
 
-            class_id += 1
+    # ── 2. QFT Unitaries ──
+    print("\n" + "=" * 70)
+    print("GENERATING QFT UNITARIES")
+    print("=" * 70)
+    for nq in QUBIT_RANGE:
+        label = f"qft_q{nq}"
+        print(f"\n  {label}")
+        U = generate_qft_unitary(nq)
+        baselines = compile_baselines_qiskit(U, nq, label)
+        benchmarks[label] = {
+            "unitary": U,
+            "n_qubits": nq,
+            "category": "qft",
+            "baselines": baselines,
+        }
 
-    X = np.concatenate(all_X)
-    y = np.concatenate(all_y)
-    target_ce_arr = np.concatenate(all_target_ce)
-    depth_arr = np.concatenate(all_depth)
-    realized_ce_arr = np.concatenate(all_realized_ce)
+    # ── 3. Grover Oracles & Iterates ──
+    print("\n" + "=" * 70)
+    print("GENERATING GROVER CIRCUITS")
+    print("=" * 70)
+    for nq in QUBIT_RANGE:
+        dim = 2 ** nq
+        # Pick distinct marked states (deterministic via seed)
+        marked_states = np.random.choice(dim, size=min(GROVER_MARKED_STATES, dim), replace=False)
+        for ms in marked_states:
+            # Oracle alone
+            label = f"grover_oracle_q{nq}_m{ms}"
+            print(f"\n  {label}")
+            U_oracle = generate_grover_oracle(nq, int(ms))
+            baselines = compile_baselines_qiskit(U_oracle, nq, label)
+            benchmarks[label] = {
+                "unitary": U_oracle,
+                "n_qubits": nq,
+                "category": "grover_oracle",
+                "marked_state": int(ms),
+                "baselines": baselines,
+            }
 
-    idx = np.arange(len(X))
-    train_idx, test_idx = train_test_split(
-        idx, test_size=test_size, random_state=SEED, stratify=y,
-    )
+            # Full Grover iterate (oracle + diffusion)
+            label = f"grover_iterate_q{nq}_m{ms}"
+            print(f"\n  {label}")
+            U_iter = generate_grover_iterate(nq, int(ms))
+            baselines = compile_baselines_qiskit(U_iter, nq, label)
+            benchmarks[label] = {
+                "unitary": U_iter,
+                "n_qubits": nq,
+                "category": "grover_iterate",
+                "marked_state": int(ms),
+                "baselines": baselines,
+            }
 
+    # ── 4. Hamiltonian Simulation (Trotter) ──
+    print("\n" + "=" * 70)
+    print("GENERATING HAMILTONIAN SIMULATION UNITARIES")
+    print("=" * 70)
+    t_sim = 1.0  # simulation time
+
+    for nq in QUBIT_RANGE:
+        for model_name, ham_fn in [("heisenberg", heisenberg_hamiltonian),
+                                    ("tfim", tfim_hamiltonian)]:
+            H = ham_fn(nq)
+            for steps in TROTTER_STEPS:
+                label = f"{model_name}_q{nq}_trotter{steps}"
+                print(f"\n  {label}")
+                U = trotter_unitary(H, t_sim, steps)
+                baselines = compile_baselines_qiskit(U, nq, label)
+                benchmarks[label] = {
+                    "unitary": U,
+                    "n_qubits": nq,
+                    "category": f"hamsim_{model_name}",
+                    "trotter_steps": steps,
+                    "sim_time": t_sim,
+                    "baselines": baselines,
+                }
+
+    # ── 5. KAK Baselines for 2-Qubit Sub-blocks ──
+    print("\n" + "=" * 70)
+    print("COMPUTING KAK BASELINES (2-QUBIT SUB-BLOCKS)")
+    print("=" * 70)
+    kak_results = {}
+    n_kak_samples = 100
+    two_q_unitaries = generate_haar_unitaries(2, n_kak_samples)
+    for i, U in enumerate(two_q_unitaries):
+        label = f"kak_2q_{i:03d}"
+        kak_info = kak_baseline_two_qubit(U)
+        qiskit_baselines = compile_baselines_qiskit(U, 2, label)
+        kak_results[label] = {
+            "unitary": U,
+            "kak": kak_info,
+            "qiskit_baselines": qiskit_baselines,
+        }
+        if i % 20 == 0:
+            print(
+                f"    {label}  KAK 2q_gates={kak_info['two_qubit_gates']}  "
+                f"total={kak_info['total_gates']}"
+            )
+
+    # ── 6. Summary Statistics ──
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+
+    categories = {}
+    for label, info in benchmarks.items():
+        cat = info["category"]
+        nq = info["n_qubits"]
+        k = f"{cat}_q{nq}"
+        if k not in categories:
+            categories[k] = {"count": 0, "ibm_opt3_2q": [], "google_opt3_2q": []}
+        categories[k]["count"] += 1
+        bl = info["baselines"]
+        if bl.get("ibm_opt3", {}).get("success"):
+            categories[k]["ibm_opt3_2q"].append(bl["ibm_opt3"]["two_qubit_gates"])
+        if bl.get("google_opt3", {}).get("success"):
+            categories[k]["google_opt3_2q"].append(bl["google_opt3"]["two_qubit_gates"])
+
+    for k, v in sorted(categories.items()):
+        ibm_mean = np.mean(v["ibm_opt3_2q"]) if v["ibm_opt3_2q"] else float("nan")
+        ggl_mean = np.mean(v["google_opt3_2q"]) if v["google_opt3_2q"] else float("nan")
+        print(
+            f"  {k:35s}  n={v['count']:4d}  "
+            f"IBM-opt3 mean 2q={ibm_mean:7.1f}  "
+            f"Google-opt3 mean 2q={ggl_mean:7.1f}"
+        )
+
+    # ── 7. Save ──
     payload = {
-        # core data
-        "X_train": torch.tensor(X[train_idx], dtype=torch.complex64),
-        "y_train": torch.tensor(y[train_idx], dtype=torch.long),
-        "X_test": torch.tensor(X[test_idx], dtype=torch.complex64),
-        "y_test": torch.tensor(y[test_idx], dtype=torch.long),
-        # metadata
-        "target_ce_train": torch.tensor(target_ce_arr[train_idx], dtype=torch.float32),
-        "target_ce_test": torch.tensor(target_ce_arr[test_idx], dtype=torch.float32),
-        "depth_train": torch.tensor(depth_arr[train_idx], dtype=torch.long),
-        "depth_test": torch.tensor(depth_arr[test_idx], dtype=torch.long),
-        "realized_ce_train": torch.tensor(realized_ce_arr[train_idx], dtype=torch.float32),
-        "realized_ce_test": torch.tensor(realized_ce_arr[test_idx], dtype=torch.float32),
-        # generators (so you can materialise more states later)
-        "trained_weights": trained_weights,
-        # config for reproducibility
+        "benchmarks": benchmarks,
+        "kak_baselines": kak_results,
         "config": {
-            "n_qubits": n_qubits,
-            "depths": depths,
-            "target_ces": target_ces,
-            "samples_per_generator": samples_per_generator,
-            "train_steps": TRAIN_STEPS,
-            "batch_size": BATCH_SIZE,
-            "lr": LR,
             "seed": SEED,
+            "qubit_range": QUBIT_RANGE,
+            "n_haar_samples": N_HAAR_SAMPLES,
+            "grover_marked_states": GROVER_MARKED_STATES,
+            "trotter_steps": TROTTER_STEPS,
+            "qiskit_opt_levels": QISKIT_OPT_LEVELS,
         },
     }
 
     torch.save(payload, save_path)
-
-    n_classes = class_id
-    n_total = len(X)
-    print(f"\n{'='*60}")
-    print(f"Dataset saved to {save_path}")
-    print(f"  Total states : {n_total}")
-    print(f"  Classes      : {n_classes}")
-    print(f"  Train / Test : {len(train_idx)} / {len(test_idx)}")
-    print(f"{'='*60}")
+    n_total = len(benchmarks)
+    print(f"\n  Saved {n_total} benchmark unitaries + {len(kak_results)} KAK baselines")
+    print(f"  → {save_path}")
+    print("=" * 70)
 
     return payload
 
 
 # ─────────────────────────────────────────────
 if __name__ == "__main__":
-    build_ntangled_dataset()
+    build_benchmark_dataset()

@@ -4,7 +4,7 @@ An autonomous quantum machine learning (QML) research framework that iterates ov
 
 ### Problem 1: NTangled State Classification — test accuracy over iterations
 
-![NTangled state classification progress](progress.png)
+![NTangled state classification progress](NTangled_states/progress.png)
 
 *Test accuracy (%) on classifying 4-qubit statevectors as shallow (depth=1) vs. deep (depth=4) `StronglyEntanglingLayers` circuits. Each point is one autonomous agent iteration.*
 

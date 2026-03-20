@@ -1,12 +1,26 @@
 # autoresearch-qml
 
-![progress](progress.png)
+An autonomous quantum machine learning (QML) research framework that iterates overnight on hybrid quantum-classical circuit designs. Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch).
 
-An autonomous quantum machine learning (QML) research framework that iterates overnight on hybrid quantum-classical circuit designs. Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch), adapted for quantum circuit classification instead of LLM training.
+### Problem 1: NTangled State Classification — test accuracy over iterations
+
+![NTangled state classification progress](progress.png)
+
+*Test accuracy (%) on classifying 4-qubit statevectors as shallow (depth=1) vs. deep (depth=4) `StronglyEntanglingLayers` circuits. Each point is one autonomous agent iteration.*
+
+### Problem 2: Quantum Circuit Compilation — CX gate count vs. Qiskit opt-3
+
+![Circuit compilation progress](RL_Ckt_optim/progress.png)
+
+*CX gate counts achieved by the agent vs. Qiskit transpiler (optimization level 3) across 46 test unitaries (3-qubit and 4-qubit). Lower is better. Best result: 45/46 unitaries beat Qiskit.*
 
 ## What it does
 
-The agent is given a binary classification task: given a 4-qubit quantum statevector, determine whether it was produced by a **shallow (depth=1)** or **deep (depth=4)** `StronglyEntanglingLayers` circuit. The agent autonomously edits `train.py`, trains for up to 5 minutes, checks if test accuracy improved, keeps or discards the change, and repeats.
+The agent autonomously edits `train.py`, runs an experiment (capped at 5 minutes), checks if performance improved, keeps or discards the change, and repeats. Two problems have been tackled:
+
+**Problem 1 — NTangled State Classification:** Given a 4-qubit quantum statevector, classify whether it was produced by a shallow (depth=1) or deep (depth=4) `StronglyEntanglingLayers` circuit.
+
+**Problem 2 — Quantum Circuit Compilation (`RL_Ckt_optim/`):** Given a target unitary, find a parameterized U3+CX circuit that implements it with fewer CX gates than Qiskit's transpiler (optimization level 3).
 
 **Dataset (`ntangled_states.pt`):**
 - 4-qubit quantum statevectors (16 complex amplitudes, 2⁴)

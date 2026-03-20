@@ -1,6 +1,6 @@
-# autoresearch-qml
+# autoquantum
 
-An autonomous quantum machine learning (QML) research framework that iterates overnight on hybrid quantum-classical circuit designs. Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch).
+An autonomous quantum computing research framework that iterates overnight for various quantum computing research problems. Inspired by [karpathy/autoresearch](https://github.com/karpathy/autoresearch).
 
 ### Problem 1: NTangled State Classification — test accuracy over iterations
 

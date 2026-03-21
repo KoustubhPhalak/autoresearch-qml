@@ -1,9 +1,9 @@
 """
-Plot progress for Quantum Circuit Compilation experiments.
-Reads iteration_history.json and current results, generates progress.png.
+Plot progress for Lattice Reduction Cost Model experiments.
+Reads iteration_history.json, generates progress.png.
 """
 
-import os, json
+import os, json, math
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
@@ -24,181 +24,236 @@ def save_history(history):
         json.dump(history, f, indent=2)
 
 
-def record_iteration(results, test_acc, label):
-    """Append this iteration's stats to the history file, segregated by qubit count and category."""
+def record_iteration(score, r2_interp, r2_extrap, theory_corr, label="iter0",
+                     extra_metrics=None):
+    """Append iteration stats to history file."""
     history = load_history()
-
-    # Per-qubit breakdown
-    by_nq = {}
-    for r in results:
-        nq = r.get("nq", 3)  # default 3 for backward compat
-        if nq not in by_nq:
-            by_nq[nq] = {"beat": 0, "total": 0, "ours_cx": [], "qiskit_cx": []}
-        by_nq[nq]["total"] += 1
-        if r.get("beat"):
-            by_nq[nq]["beat"] += 1
-        if r.get("success"):
-            by_nq[nq]["ours_cx"].append(r["ours"])
-            by_nq[nq]["qiskit_cx"].append(r["qiskit"])
-
-    # Per-category breakdown
-    by_cat = {}
-    for r in results:
-        cat = r.get("category", "?")
-        if cat not in by_cat:
-            by_cat[cat] = {"beat": 0, "total": 0, "ours_cx": [], "qiskit_cx": []}
-        by_cat[cat]["total"] += 1
-        if r.get("beat"):
-            by_cat[cat]["beat"] += 1
-        if r.get("success"):
-            by_cat[cat]["ours_cx"].append(r["ours"])
-            by_cat[cat]["qiskit_cx"].append(r["qiskit"])
-
-    # Build per-nq summary
-    nq_summary = {}
-    for nq, d in by_nq.items():
-        nq_summary[str(nq)] = {
-            "beat": d["beat"], "total": d["total"],
-            "avg_ours": float(np.mean(d["ours_cx"])) if d["ours_cx"] else 0,
-            "avg_qiskit": float(np.mean(d["qiskit_cx"])) if d["qiskit_cx"] else 0,
-            "avg_saving": float(np.mean([q-o for o,q in zip(d["ours_cx"], d["qiskit_cx"])])) if d["ours_cx"] else 0,
-        }
-
-    successful = [r for r in results if r.get("success")]
     entry = {
         "label": label,
-        "test_acc": test_acc,
-        "n_eval": len(results),
-        "n_beat": sum(1 for r in results if r.get("beat")),
-        "avg_ours_cx": float(np.mean([r["ours"] for r in successful])) if successful else 0,
-        "avg_qiskit_cx": float(np.mean([r["qiskit"] for r in successful])) if successful else 0,
-        "avg_saving": float(np.mean([r["qiskit"] - r["ours"] for r in successful])) if successful else 0,
-        "by_nq": nq_summary,
+        "pred_score": score,
+        "r2_interp": r2_interp,
+        "r2_extrap": r2_extrap,
+        "theory_corr": theory_corr,
     }
+    if extra_metrics:
+        entry.update(extra_metrics)
     history.append(entry)
     save_history(history)
     return history
 
 
-def save_progress(results, test_acc, history=None, filename="progress.png"):
-    fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+def save_progress(y_interp, y_interp_pred, y_extrap, y_extrap_pred,
+                  score, history=None, meta_interp=None, meta_extrap=None,
+                  filename="progress.png"):
+    """Generate 2×3 diagnostic progress.png."""
 
-    # Left: per-category beat rate
-    cats = {}
-    for r in results:
-        c = r["category"]
-        if c not in cats:
-            cats[c] = {"beat": 0, "total": 0}
-        cats[c]["total"] += 1
-        if r["beat"]:
-            cats[c]["beat"] += 1
+    fig, axes = plt.subplots(2, 3, figsize=(18, 11))
 
-    cat_names = sorted(cats.keys())
-    rates = [cats[c]["beat"] / cats[c]["total"] if cats[c]["total"] > 0 else 0 for c in cat_names]
-    colors = ["#4CAF50" if r > 0.5 else "#2196F3" if r > 0 else "#f44336" for r in rates]
-    axes[0].bar(range(len(cat_names)), rates, color=colors)
-    axes[0].set_xticks(range(len(cat_names)))
-    axes[0].set_xticklabels(cat_names, rotation=45, ha="right", fontsize=8)
-    axes[0].set_ylabel("Beat Rate")
-    axes[0].set_title(f"Beat rate by category\n(TEST_ACC={test_acc:.4f})")
-    axes[0].set_ylim(0, 1.05)
+    # ── Top-left: Interpolation scatter ──
+    ax = axes[0, 0]
+    if meta_interp is not None:
+        colors_i = ["steelblue" if m["attack"] == "primal" else "mediumseagreen"
+                     for m in meta_interp]
+    else:
+        colors_i = "steelblue"
+    ax.scatter(y_interp, y_interp_pred, alpha=0.5, s=18, c=colors_i,
+               edgecolors="white", linewidths=0.3)
+    lims = [min(y_interp.min(), y_interp_pred.min()) - 1,
+            max(y_interp.max(), y_interp_pred.max()) + 1]
+    ax.plot(lims, lims, "r--", lw=1, label="y = x")
+    ss_res = np.sum((y_interp - y_interp_pred) ** 2)
+    ss_tot = np.sum((y_interp - y_interp.mean()) ** 2)
+    r2 = 1 - ss_res / ss_tot if ss_tot > 1e-12 else 0
+    ax.set_xlabel("Actual log₂(time)")
+    ax.set_ylabel("Predicted log₂(time)")
+    ax.set_title(f"Interpolation  (R² = {r2:.4f})")
+    ax.legend(fontsize=8)
 
-    # Middle: average CX count comparison (Qiskit vs Ours) by category
-    cats_cx = {}
-    for r in results:
-        if not r.get("success"):
-            continue
-        c = r["category"]
-        if c not in cats_cx:
-            cats_cx[c] = {"qiskit": [], "ours": []}
-        cats_cx[c]["qiskit"].append(r["qiskit"])
-        cats_cx[c]["ours"].append(r["ours"])
+    # ── Top-middle: Extrapolation scatter ──
+    ax = axes[0, 1]
+    if len(y_extrap) > 0:
+        if meta_extrap is not None:
+            colors_e = ["darkorange" if m["attack"] == "primal" else "orchid"
+                         for m in meta_extrap]
+        else:
+            colors_e = "darkorange"
+        ax.scatter(y_extrap, y_extrap_pred, alpha=0.5, s=18, c=colors_e,
+                   edgecolors="white", linewidths=0.3)
+        lims = [min(y_extrap.min(), y_extrap_pred.min()) - 1,
+                max(y_extrap.max(), y_extrap_pred.max()) + 1]
+        ax.plot(lims, lims, "r--", lw=1)
+        ss_res = np.sum((y_extrap - y_extrap_pred) ** 2)
+        ss_tot = np.sum((y_extrap - y_extrap.mean()) ** 2)
+        r2e = 1 - ss_res / ss_tot if ss_tot > 1e-12 else 0
+        ax.set_title(f"Extrapolation  (R² = {r2e:.4f})")
+    else:
+        ax.text(0.5, 0.5, "N/A", transform=ax.transAxes, ha="center",
+                fontsize=20, color="gray")
+        ax.set_title("No extrapolation data")
+    ax.set_xlabel("Actual log₂(time)")
+    ax.set_ylabel("Predicted log₂(time)")
 
-    cx_cats = sorted(cats_cx.keys())
-    x = np.arange(len(cx_cats))
-    width = 0.35
-    qiskit_means = [np.mean(cats_cx[c]["qiskit"]) for c in cx_cats]
-    ours_means = [np.mean(cats_cx[c]["ours"]) for c in cx_cats]
-    axes[1].bar(x - width/2, qiskit_means, width, label="Qiskit opt-3 (static)", color="#f44336", alpha=0.8)
-    axes[1].bar(x + width/2, ours_means, width, label="Ours", color="#4CAF50", alpha=0.8)
-    axes[1].set_xticks(x)
-    axes[1].set_xticklabels(cx_cats, rotation=45, ha="right", fontsize=8)
-    axes[1].set_ylabel("Avg CX Gate Count")
-    axes[1].set_title("CX Gate Count: Qiskit vs Ours")
-    axes[1].legend()
+    # ── Top-right: Residuals vs β ──
+    ax = axes[0, 2]
+    if meta_interp is not None and meta_extrap is not None:
+        betas_i = [m["beta"] for m in meta_interp]
+        betas_e = [m["beta"] for m in meta_extrap]
+        res_i = y_interp - y_interp_pred
+        res_e = y_extrap - y_extrap_pred if len(y_extrap) > 0 else np.array([])
+        ax.scatter(betas_i, res_i, alpha=0.4, s=12, color="steelblue", label="Interp")
+        if len(res_e) > 0:
+            ax.scatter(betas_e, res_e, alpha=0.4, s=12, color="darkorange", label="Extrap")
+        ax.axhline(0, color="red", ls="--", lw=1)
+        ax.set_xlabel("β (BKZ block size)")
+        ax.set_ylabel("Residual (actual − predicted)")
+        ax.set_title("Residuals vs Block Size")
+        ax.legend(fontsize=8)
+    else:
+        all_res = np.concatenate([y_interp - y_interp_pred] +
+                                  ([y_extrap - y_extrap_pred] if len(y_extrap) > 0 else []))
+        ax.hist(all_res, bins=30, color="steelblue", alpha=0.7, edgecolor="white")
+        ax.axvline(0, color="red", ls="--", lw=1)
+        ax.set_xlabel("Residual")
+        ax.set_title("Residual Distribution")
 
-    # Right: per-qubit CX savings over iterations
-    if history and len(history) > 1:
+    # ── Bottom-left: PRED_SCORE history ──
+    ax = axes[1, 0]
+    if history and len(history) > 0:
+        iters = range(len(history))
+        scores = [h["pred_score"] for h in history]
+        best_score = max(scores)
+        best_idx = scores.index(best_score)
+        ax.plot(list(iters), scores, "b-o", markersize=5, linewidth=1.5)
+        ax.scatter([best_idx], [best_score], color="gold", s=100, zorder=5,
+                   edgecolors="black", linewidths=1, label=f"Best = {best_score:.4f}")
+        ax.axhline(best_score, color="green", ls=":", lw=1, alpha=0.5)
+        labels = [h["label"] for h in history]
+        ax.set_xticks(list(iters))
+        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
+        ax.set_ylabel("PRED_SCORE")
+        ax.set_title("PRED_SCORE Over Iterations")
+        ax.legend(fontsize=8, loc="lower right")
+        ax.set_ylim(min(0, min(scores) - 0.05), min(1.05, max(scores) + 0.1))
+    else:
+        ax.set_title("No history yet")
+
+    # ── Bottom-middle: Component scores ──
+    ax = axes[1, 1]
+    if history and len(history) > 0:
         iters = list(range(len(history)))
         labels = [h["label"] for h in history]
-
-        # Extract per-qubit savings
-        for nq_str, color, marker in [("3", "#2196F3", "o"), ("4", "#FF9800", "s")]:
-            savings_nq = []
-            for h in history:
-                by_nq = h.get("by_nq", {})
-                if nq_str in by_nq:
-                    savings_nq.append(by_nq[nq_str].get("avg_saving", 0))
-                else:
-                    savings_nq.append(0)
-            if any(s > 0 for s in savings_nq):
-                axes[2].plot(iters, savings_nq, f"-{marker}", color=color,
-                            label=f"{nq_str}q avg CX saved", linewidth=2, markersize=6)
-
-        ax2_twin = axes[2].twinx()
-        accs = [h.get("test_acc", 0) for h in history]
-        ax2_twin.plot(iters, accs, "k--o", label="TEST_ACC", linewidth=1, markersize=4, alpha=0.5)
-        axes[2].set_xticks(iters)
-        axes[2].set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
-        axes[2].set_ylabel("Avg CX Gates Saved (per qubit count)")
-        ax2_twin.set_ylabel("TEST_ACC", color="gray")
-        ax2_twin.set_ylim(0, 1.05)
-        axes[2].set_title("CX Savings by Qubit Count\n(Qiskit baselines are static)")
-        axes[2].legend(loc="upper left", fontsize=7)
-        ax2_twin.legend(loc="upper right", fontsize=7)
+        ax.plot(iters, [h.get("r2_interp", 0) for h in history], "s-",
+                color="steelblue", markersize=4, linewidth=1.2, label="R²_interp (×0.3)")
+        ax.plot(iters, [h.get("r2_extrap", 0) for h in history], "D-",
+                color="darkorange", markersize=4, linewidth=1.2, label="R²_extrap (×0.5)")
+        ax.plot(iters, [h.get("theory_corr", 0) for h in history], "^-",
+                color="green", markersize=4, linewidth=1.2, label="Theory corr (×0.2)")
+        ax.set_xticks(iters)
+        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
+        ax.set_ylabel("Component Score")
+        ax.set_title("Score Components")
+        ax.legend(fontsize=7, loc="lower right")
+        ax.set_ylim(-0.1, 1.1)
     else:
-        our_cx = [r["ours"] for r in results if r.get("success")]
-        bl_cx = [r["qiskit"] for r in results if r.get("success")]
-        if our_cx:
-            axes[2].scatter(bl_cx, our_cx,
-                           c=["green" if o < b else "red" for o, b in zip(our_cx, bl_cx)],
-                           alpha=0.6, s=30)
-            mx = max(max(our_cx), max(bl_cx)) + 2
-            axes[2].plot([0, mx], [0, mx], "k--", alpha=0.3, label="y=x (tie)")
-            axes[2].set_xlabel("Qiskit opt-3 CX count")
-            axes[2].set_ylabel("Our CX count")
-            axes[2].set_title("Per-unitary CX comparison")
-            axes[2].legend()
+        ax.set_title("No history yet")
 
-    plt.tight_layout()
+    # ── Bottom-right: Residuals vs dimension n ──
+    ax = axes[1, 2]
+    if meta_interp is not None and meta_extrap is not None:
+        ns_i = np.array([m["n"] for m in meta_interp])
+        ns_e = np.array([m["n"] for m in meta_extrap])
+        res_i = y_interp - y_interp_pred
+        res_e = y_extrap - y_extrap_pred if len(y_extrap) > 0 else np.array([])
+
+        ax.scatter(ns_i, res_i, alpha=0.4, s=12, color="steelblue", label="Interp")
+        if len(res_e) > 0:
+            ax.scatter(ns_e, res_e, alpha=0.4, s=12, color="darkorange", label="Extrap")
+        ax.axhline(0, color="red", ls="--", lw=1)
+        ax.set_xlabel("LWE dimension n")
+        ax.set_ylabel("Residual (actual − predicted)")
+        ax.set_title("Residuals vs Dimension")
+        ax.legend(fontsize=8)
+
+        # Per-dim mean residual markers
+        all_ns = np.concatenate([ns_i] + ([ns_e] if len(res_e) > 0 else []))
+        all_res = np.concatenate([res_i] + ([res_e] if len(res_e) > 0 else []))
+        for n_val in sorted(set(all_ns)):
+            mask = all_ns == n_val
+            if mask.sum() > 0:
+                ax.plot(n_val, all_res[mask].mean(), "k_", markersize=15, markeredgewidth=2)
+    else:
+        ax.text(0.5, 0.5, "No metadata", transform=ax.transAxes, ha="center",
+                fontsize=14, color="gray")
+        ax.set_title("Residuals vs Dimension")
+
+    fig.suptitle(f"Lattice Reduction Cost Model — PRED_SCORE = {score:.4f}  "
+                 f"(primal + dual, small secrets)",
+                 fontsize=13, fontweight="bold")
+    plt.tight_layout(rect=[0, 0, 1, 0.96])
     fig.savefig(filename, dpi=120)
     plt.close()
+    print(f"  Saved {filename}")
 
 
 if __name__ == "__main__":
     history = load_history()
     if history:
         latest = history[-1]
-        print(f"Latest: {latest['label']} TEST_ACC={latest['test_acc']:.4f}")
-        fig, ax = plt.subplots(figsize=(10, 5))
-        iters = range(len(history))
-        savings = [h.get("avg_saving", 0) for h in history]
-        accs = [h.get("test_acc", 0) for h in history]
-        labels = [h["label"] for h in history]
-        ax_twin = ax.twinx()
-        ax.bar(iters, savings, color="#4CAF50", alpha=0.7, label="Avg CX saved")
-        ax_twin.plot(iters, accs, "b-o", label="TEST_ACC", linewidth=2, markersize=6)
-        ax.set_xticks(list(iters))
-        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=8)
-        ax.set_ylabel("Avg CX Gates Saved vs Qiskit (static)")
-        ax_twin.set_ylabel("TEST_ACC", color="blue")
-        ax_twin.set_ylim(0, 1.05)
-        ax.set_title("Circuit Compilation: Improvement Over Iterations")
-        ax.legend(loc="upper left")
-        ax_twin.legend(loc="upper right")
-        plt.tight_layout()
+        print(f"Latest: {latest['label']}  PRED_SCORE={latest['pred_score']:.4f}")
+        print(f"  R²_interp={latest.get('r2_interp', 0):.4f}  "
+              f"R²_extrap={latest.get('r2_extrap', 0):.4f}  "
+              f"theory_corr={latest.get('theory_corr', 0):.4f}")
+
+        fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+        iters = list(range(len(history)))
+        labels_list = [h["label"] for h in history]
+        scores = [h["pred_score"] for h in history]
+        r2i = [h.get("r2_interp", 0) for h in history]
+        r2e = [h.get("r2_extrap", 0) for h in history]
+        tc = [h.get("theory_corr", 0) for h in history]
+
+        best = max(scores)
+        colors = ["gold" if s == best else "#4CAF50" if s > 0.5 else "#2196F3" for s in scores]
+        axes[0].bar(iters, scores, color=colors, alpha=0.8, edgecolor="white")
+        axes[0].axhline(best, color="green", ls=":", lw=1, alpha=0.5)
+        axes[0].set_xticks(iters)
+        axes[0].set_xticklabels(labels_list, rotation=45, ha="right", fontsize=7)
+        axes[0].set_ylabel("PRED_SCORE")
+        axes[0].set_title(f"PRED_SCORE  (best = {best:.4f})")
+
+        w_interp = [0.3 * v for v in r2i]
+        w_extrap = [0.5 * v for v in r2e]
+        w_theory = [0.2 * v for v in tc]
+        axes[1].bar(iters, w_interp, color="steelblue", alpha=0.8, label="R²_interp (30%)")
+        axes[1].bar(iters, w_extrap, bottom=w_interp, color="darkorange", alpha=0.8,
+                    label="R²_extrap (50%)")
+        bottoms = [a + b for a, b in zip(w_interp, w_extrap)]
+        axes[1].bar(iters, w_theory, bottom=bottoms, color="green", alpha=0.8,
+                    label="Theory corr (20%)")
+        axes[1].set_xticks(iters)
+        axes[1].set_xticklabels(labels_list, rotation=45, ha="right", fontsize=7)
+        axes[1].set_ylabel("Weighted Contribution")
+        axes[1].set_title("Score Breakdown")
+        axes[1].legend(fontsize=7)
+
+        axes[2].plot(iters, r2i, "s-", color="steelblue", markersize=5, linewidth=1.5,
+                     label="R²_interp")
+        axes[2].plot(iters, r2e, "D-", color="darkorange", markersize=5, linewidth=1.5,
+                     label="R²_extrap")
+        axes[2].plot(iters, tc, "^-", color="green", markersize=5, linewidth=1.5,
+                     label="Theory corr")
+        axes[2].set_xticks(iters)
+        axes[2].set_xticklabels(labels_list, rotation=45, ha="right", fontsize=7)
+        axes[2].set_ylabel("Score")
+        axes[2].set_title("Component Scores (Raw)")
+        axes[2].legend(fontsize=8)
+        axes[2].set_ylim(-0.1, 1.1)
+
+        plt.suptitle("Lattice Reduction Cost Model — Experiment Progress",
+                      fontsize=13, fontweight="bold")
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
         fig.savefig("progress.png", dpi=120)
         plt.close()
         print("Saved progress.png")
     else:
-        print("No history found")
+        print("No history found. Run train.py first.")

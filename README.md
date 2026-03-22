@@ -24,7 +24,7 @@ An autonomous quantum computing research framework that iterates overnight for v
 
 The agent autonomously edits `train.py`, runs an experiment (capped at 5 minutes), checks if performance improved, keeps or discards the change, and repeats. Three problems have been tackled:
 
-**Problem 1 — NTangled State Classification:** Given a 4-qubit quantum statevector, classify whether it was produced by a shallow (depth=1) or deep (depth=4) `StronglyEntanglingLayers` circuit.
+**Problem 1 — NTangled State Classification (`NTangled_states/`):** Given a 4-qubit quantum statevector, classify whether it was produced by a shallow (depth=1) or deep (depth=4) `StronglyEntanglingLayers` circuit.
 
 **Problem 2 — Quantum Circuit Compilation (`RL_Ckt_optim/`):** Given a target unitary, find a parameterized U3+CX circuit that implements it with fewer CX gates than Qiskit's transpiler (optimization level 3).
 

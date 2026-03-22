@@ -1,0 +1,2352 @@
+{
+  "random/rand_4q_60d": {
+    "name": "random/rand_4q_60d",
+    "family": "random",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 20,
+        "cnot_count": 31,
+        "had_count": 9,
+        "total_gates": 60,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 8,
+        "cnot_count": 26,
+        "had_count": 5,
+        "total_gates": 44,
+        "s_count": 0,
+        "time_s": 0.0076,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 8,
+        "cnot_count": 25,
+        "had_count": 5,
+        "total_gates": 45,
+        "s_count": 0,
+        "time_s": 0.0045,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 8,
+        "cnot_count": 30,
+        "had_count": 5,
+        "total_gates": 51,
+        "s_count": 5,
+        "time_s": 0.0025,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_4q_100d": {
+    "name": "random/rand_4q_100d",
+    "family": "random",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 30,
+        "cnot_count": 51,
+        "had_count": 19,
+        "total_gates": 100,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 16,
+        "cnot_count": 32,
+        "had_count": 17,
+        "total_gates": 68,
+        "s_count": 0,
+        "time_s": 0.0134,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 16,
+        "cnot_count": 35,
+        "had_count": 11,
+        "total_gates": 67,
+        "s_count": 0,
+        "time_s": 0.0082,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 16,
+        "cnot_count": 37,
+        "had_count": 11,
+        "total_gates": 77,
+        "s_count": 5,
+        "time_s": 0.006,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_5q_80d": {
+    "name": "random/rand_5q_80d",
+    "family": "random",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 24,
+        "cnot_count": 48,
+        "had_count": 8,
+        "total_gates": 80,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 12,
+        "cnot_count": 30,
+        "had_count": 5,
+        "total_gates": 48,
+        "s_count": 0,
+        "time_s": 0.0102,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 12,
+        "cnot_count": 45,
+        "had_count": 6,
+        "total_gates": 72,
+        "s_count": 0,
+        "time_s": 0.0088,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 12,
+        "cnot_count": 46,
+        "had_count": 6,
+        "total_gates": 82,
+        "s_count": 7,
+        "time_s": 0.006,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_5q_120d": {
+    "name": "random/rand_5q_120d",
+    "family": "random",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 41,
+        "cnot_count": 61,
+        "had_count": 18,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 19,
+        "cnot_count": 46,
+        "had_count": 14,
+        "total_gates": 85,
+        "s_count": 0,
+        "time_s": 0.0152,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 19,
+        "cnot_count": 60,
+        "had_count": 12,
+        "total_gates": 108,
+        "s_count": 0,
+        "time_s": 0.0163,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 19,
+        "cnot_count": 78,
+        "had_count": 12,
+        "total_gates": 132,
+        "s_count": 11,
+        "time_s": 0.011,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_6q_80d": {
+    "name": "random/rand_6q_80d",
+    "family": "random",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 39,
+        "cnot_count": 30,
+        "had_count": 11,
+        "total_gates": 80,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 11,
+        "cnot_count": 35,
+        "had_count": 7,
+        "total_gates": 60,
+        "s_count": 0,
+        "time_s": 0.0095,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 11,
+        "cnot_count": 41,
+        "had_count": 7,
+        "total_gates": 66,
+        "s_count": 0,
+        "time_s": 0.0071,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 11,
+        "cnot_count": 34,
+        "had_count": 9,
+        "total_gates": 68,
+        "s_count": 10,
+        "time_s": 0.0047,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_6q_120d": {
+    "name": "random/rand_6q_120d",
+    "family": "random",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 47,
+        "cnot_count": 61,
+        "had_count": 12,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 21,
+        "cnot_count": 58,
+        "had_count": 9,
+        "total_gates": 95,
+        "s_count": 0,
+        "time_s": 0.0242,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 21,
+        "cnot_count": 63,
+        "had_count": 9,
+        "total_gates": 99,
+        "s_count": 0,
+        "time_s": 0.0185,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 21,
+        "cnot_count": 72,
+        "had_count": 9,
+        "total_gates": 119,
+        "s_count": 10,
+        "time_s": 0.0105,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_6q_180d": {
+    "name": "random/rand_6q_180d",
+    "family": "random",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 68,
+        "cnot_count": 94,
+        "had_count": 18,
+        "total_gates": 180,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 30,
+        "cnot_count": 76,
+        "had_count": 16,
+        "total_gates": 126,
+        "s_count": 0,
+        "time_s": 0.0361,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 32,
+        "cnot_count": 134,
+        "had_count": 16,
+        "total_gates": 206,
+        "s_count": 0,
+        "time_s": 0.0299,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 32,
+        "cnot_count": 135,
+        "had_count": 16,
+        "total_gates": 216,
+        "s_count": 20,
+        "time_s": 0.0135,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_8q_100d": {
+    "name": "random/rand_8q_100d",
+    "family": "random",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 37,
+        "cnot_count": 49,
+        "had_count": 14,
+        "total_gates": 100,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 15,
+        "cnot_count": 76,
+        "had_count": 10,
+        "total_gates": 108,
+        "s_count": 0,
+        "time_s": 0.0139,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 15,
+        "cnot_count": 68,
+        "had_count": 10,
+        "total_gates": 107,
+        "s_count": 0,
+        "time_s": 0.0159,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 15,
+        "cnot_count": 95,
+        "had_count": 10,
+        "total_gates": 143,
+        "s_count": 10,
+        "time_s": 0.0121,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_8q_160d": {
+    "name": "random/rand_8q_160d",
+    "family": "random",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 51,
+        "cnot_count": 82,
+        "had_count": 27,
+        "total_gates": 160,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 23,
+        "cnot_count": 119,
+        "had_count": 21,
+        "total_gates": 181,
+        "s_count": 0,
+        "time_s": 0.0407,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 23,
+        "cnot_count": 156,
+        "had_count": 15,
+        "total_gates": 226,
+        "s_count": 0,
+        "time_s": 0.0254,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 23,
+        "cnot_count": 138,
+        "had_count": 15,
+        "total_gates": 207,
+        "s_count": 13,
+        "time_s": 0.017,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_8q_200d": {
+    "name": "random/rand_8q_200d",
+    "family": "random",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 71,
+        "cnot_count": 101,
+        "had_count": 28,
+        "total_gates": 200,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 33,
+        "cnot_count": 107,
+        "had_count": 20,
+        "total_gates": 165,
+        "s_count": 0,
+        "time_s": 0.046,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 33,
+        "cnot_count": 176,
+        "had_count": 18,
+        "total_gates": 255,
+        "s_count": 0,
+        "time_s": 0.0358,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 33,
+        "cnot_count": 187,
+        "had_count": 18,
+        "total_gates": 271,
+        "s_count": 17,
+        "time_s": 0.025,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_10q_120d": {
+    "name": "random/rand_10q_120d",
+    "family": "random",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 47,
+        "cnot_count": 61,
+        "had_count": 12,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 21,
+        "cnot_count": 110,
+        "had_count": 12,
+        "total_gates": 150,
+        "s_count": 0,
+        "time_s": 0.0331,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 23,
+        "cnot_count": 172,
+        "had_count": 12,
+        "total_gates": 229,
+        "s_count": 0,
+        "time_s": 0.0367,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 23,
+        "cnot_count": 177,
+        "had_count": 12,
+        "total_gates": 230,
+        "s_count": 9,
+        "time_s": 0.0288,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_10q_200d": {
+    "name": "random/rand_10q_200d",
+    "family": "random",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 78,
+        "cnot_count": 91,
+        "had_count": 31,
+        "total_gates": 200,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 38,
+        "cnot_count": 170,
+        "had_count": 23,
+        "total_gates": 247,
+        "s_count": 0,
+        "time_s": 0.0591,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 38,
+        "cnot_count": 249,
+        "had_count": 23,
+        "total_gates": 346,
+        "s_count": 0,
+        "time_s": 0.0565,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 38,
+        "cnot_count": 261,
+        "had_count": 23,
+        "total_gates": 361,
+        "s_count": 20,
+        "time_s": 0.0444,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_12q_150d": {
+    "name": "random/rand_12q_150d",
+    "family": "random",
+    "qubits": 12,
+    "baselines": {
+      "original": {
+        "t_count": 56,
+        "cnot_count": 72,
+        "had_count": 22,
+        "total_gates": 150,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 22,
+        "cnot_count": 128,
+        "had_count": 16,
+        "total_gates": 176,
+        "s_count": 0,
+        "time_s": 0.034,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 22,
+        "cnot_count": 181,
+        "had_count": 14,
+        "total_gates": 244,
+        "s_count": 0,
+        "time_s": 0.0571,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 22,
+        "cnot_count": 188,
+        "had_count": 14,
+        "total_gates": 258,
+        "s_count": 14,
+        "time_s": 0.0469,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_12q_250d": {
+    "name": "random/rand_12q_250d",
+    "family": "random",
+    "qubits": 12,
+    "baselines": {
+      "original": {
+        "t_count": 84,
+        "cnot_count": 124,
+        "had_count": 42,
+        "total_gates": 250,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 40,
+        "cnot_count": 217,
+        "had_count": 27,
+        "total_gates": 303,
+        "s_count": 0,
+        "time_s": 0.0796,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 40,
+        "cnot_count": 376,
+        "had_count": 27,
+        "total_gates": 485,
+        "s_count": 0,
+        "time_s": 0.0964,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 40,
+        "cnot_count": 389,
+        "had_count": 27,
+        "total_gates": 505,
+        "s_count": 33,
+        "time_s": 0.0747,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_15q_200d": {
+    "name": "random/rand_15q_200d",
+    "family": "random",
+    "qubits": 15,
+    "baselines": {
+      "original": {
+        "t_count": 71,
+        "cnot_count": 103,
+        "had_count": 26,
+        "total_gates": 200,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 37,
+        "cnot_count": 246,
+        "had_count": 20,
+        "total_gates": 322,
+        "s_count": 0,
+        "time_s": 0.1002,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 37,
+        "cnot_count": 333,
+        "had_count": 18,
+        "total_gates": 423,
+        "s_count": 0,
+        "time_s": 0.1829,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 37,
+        "cnot_count": 323,
+        "had_count": 18,
+        "total_gates": 412,
+        "s_count": 25,
+        "time_s": 0.1596,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_5q_80d_hiT": {
+    "name": "random/rand_5q_80d_hiT",
+    "family": "random",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 47,
+        "cnot_count": 30,
+        "had_count": 3,
+        "total_gates": 80,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 11,
+        "cnot_count": 36,
+        "had_count": 3,
+        "total_gates": 55,
+        "s_count": 0,
+        "time_s": 0.0136,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 11,
+        "cnot_count": 46,
+        "had_count": 3,
+        "total_gates": 67,
+        "s_count": 0,
+        "time_s": 0.0066,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 11,
+        "cnot_count": 42,
+        "had_count": 3,
+        "total_gates": 70,
+        "s_count": 9,
+        "time_s": 0.0043,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_8q_100d_hiT": {
+    "name": "random/rand_8q_100d_hiT",
+    "family": "random",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 37,
+        "cnot_count": 51,
+        "had_count": 12,
+        "total_gates": 100,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 17,
+        "cnot_count": 86,
+        "had_count": 16,
+        "total_gates": 131,
+        "s_count": 0,
+        "time_s": 0.0174,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 17,
+        "cnot_count": 100,
+        "had_count": 10,
+        "total_gates": 141,
+        "s_count": 0,
+        "time_s": 0.0171,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 17,
+        "cnot_count": 104,
+        "had_count": 10,
+        "total_gates": 147,
+        "s_count": 10,
+        "time_s": 0.0113,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_10q_120d_hiT": {
+    "name": "random/rand_10q_120d_hiT",
+    "family": "random",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 62,
+        "cnot_count": 51,
+        "had_count": 7,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 22,
+        "cnot_count": 123,
+        "had_count": 7,
+        "total_gates": 162,
+        "s_count": 0,
+        "time_s": 0.027,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 22,
+        "cnot_count": 143,
+        "had_count": 7,
+        "total_gates": 187,
+        "s_count": 0,
+        "time_s": 0.0417,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 22,
+        "cnot_count": 135,
+        "had_count": 7,
+        "total_gates": 183,
+        "s_count": 11,
+        "time_s": 0.0348,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "random/rand_6q_100d_loT": {
+    "name": "random/rand_6q_100d_loT",
+    "family": "random",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 21,
+        "cnot_count": 51,
+        "had_count": 28,
+        "total_gates": 100,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 13,
+        "cnot_count": 51,
+        "had_count": 16,
+        "total_gates": 93,
+        "s_count": 0,
+        "time_s": 0.0131,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 13,
+        "cnot_count": 67,
+        "had_count": 14,
+        "total_gates": 106,
+        "s_count": 0,
+        "time_s": 0.0113,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 13,
+        "cnot_count": 74,
+        "had_count": 14,
+        "total_gates": 112,
+        "s_count": 8,
+        "time_s": 0.0081,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "random/rand_8q_120d_loT": {
+    "name": "random/rand_8q_120d_loT",
+    "family": "random",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 25,
+        "cnot_count": 64,
+        "had_count": 31,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 13,
+        "cnot_count": 67,
+        "had_count": 11,
+        "total_gates": 99,
+        "s_count": 0,
+        "time_s": 0.016,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 13,
+        "cnot_count": 100,
+        "had_count": 13,
+        "total_gates": 148,
+        "s_count": 0,
+        "time_s": 0.0161,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 13,
+        "cnot_count": 95,
+        "had_count": 13,
+        "total_gates": 142,
+        "s_count": 12,
+        "time_s": 0.0108,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_4q_10l": {
+    "name": "phase_poly/pp_4q_10l",
+    "family": "phase_poly",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 13,
+        "cnot_count": 20,
+        "had_count": 0,
+        "total_gates": 60,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 7,
+        "cnot_count": 19,
+        "had_count": 0,
+        "total_gates": 29,
+        "s_count": 0,
+        "time_s": 0.0087,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 7,
+        "cnot_count": 21,
+        "had_count": 0,
+        "total_gates": 31,
+        "s_count": 0,
+        "time_s": 0.004,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 7,
+        "cnot_count": 18,
+        "had_count": 0,
+        "total_gates": 29,
+        "s_count": 3,
+        "time_s": 0.0029,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_4q_20l": {
+    "name": "phase_poly/pp_4q_20l",
+    "family": "phase_poly",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 28,
+        "cnot_count": 40,
+        "had_count": 0,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 10,
+        "cnot_count": 20,
+        "had_count": 0,
+        "total_gates": 30,
+        "s_count": 0,
+        "time_s": 0.016,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 5,
+        "cnot_count": 22,
+        "had_count": 0,
+        "total_gates": 31,
+        "s_count": 0,
+        "time_s": 0.0048,
+        "verified": false,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 5,
+        "cnot_count": 19,
+        "had_count": 0,
+        "total_gates": 28,
+        "s_count": 3,
+        "time_s": 0.0031,
+        "verified": false,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_5q_15l": {
+    "name": "phase_poly/pp_5q_15l",
+    "family": "phase_poly",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 24,
+        "cnot_count": 30,
+        "had_count": 0,
+        "total_gates": 105,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 8,
+        "cnot_count": 30,
+        "had_count": 0,
+        "total_gates": 41,
+        "s_count": 0,
+        "time_s": 0.0156,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 8,
+        "cnot_count": 30,
+        "had_count": 0,
+        "total_gates": 45,
+        "s_count": 0,
+        "time_s": 0.0064,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 8,
+        "cnot_count": 29,
+        "had_count": 0,
+        "total_gates": 43,
+        "s_count": 4,
+        "time_s": 0.0044,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_5q_25l": {
+    "name": "phase_poly/pp_5q_25l",
+    "family": "phase_poly",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 46,
+        "cnot_count": 75,
+        "had_count": 0,
+        "total_gates": 200,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 10,
+        "cnot_count": 27,
+        "had_count": 0,
+        "total_gates": 40,
+        "s_count": 0,
+        "time_s": 0.0503,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 10,
+        "cnot_count": 29,
+        "had_count": 0,
+        "total_gates": 41,
+        "s_count": 0,
+        "time_s": 0.0113,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 10,
+        "cnot_count": 30,
+        "had_count": 0,
+        "total_gates": 46,
+        "s_count": 3,
+        "time_s": 0.0086,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_6q_15l": {
+    "name": "phase_poly/pp_6q_15l",
+    "family": "phase_poly",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 30,
+        "cnot_count": 45,
+        "had_count": 0,
+        "total_gates": 135,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 12,
+        "cnot_count": 45,
+        "had_count": 0,
+        "total_gates": 60,
+        "s_count": 0,
+        "time_s": 0.0188,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 12,
+        "cnot_count": 48,
+        "had_count": 0,
+        "total_gates": 68,
+        "s_count": 0,
+        "time_s": 0.0145,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 12,
+        "cnot_count": 39,
+        "had_count": 0,
+        "total_gates": 60,
+        "s_count": 3,
+        "time_s": 0.0113,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_6q_30l": {
+    "name": "phase_poly/pp_6q_30l",
+    "family": "phase_poly",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 56,
+        "cnot_count": 90,
+        "had_count": 0,
+        "total_gates": 270,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 18,
+        "cnot_count": 51,
+        "had_count": 0,
+        "total_gates": 73,
+        "s_count": 0,
+        "time_s": 0.0574,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 14,
+        "cnot_count": 51,
+        "had_count": 0,
+        "total_gates": 69,
+        "s_count": 0,
+        "time_s": 0.0241,
+        "verified": false,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 14,
+        "cnot_count": 43,
+        "had_count": 0,
+        "total_gates": 66,
+        "s_count": 2,
+        "time_s": 0.0207,
+        "verified": false,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_8q_20l": {
+    "name": "phase_poly/pp_8q_20l",
+    "family": "phase_poly",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 52,
+        "cnot_count": 60,
+        "had_count": 0,
+        "total_gates": 220,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 18,
+        "cnot_count": 75,
+        "had_count": 0,
+        "total_gates": 95,
+        "s_count": 0,
+        "time_s": 0.0384,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 18,
+        "cnot_count": 84,
+        "had_count": 0,
+        "total_gates": 109,
+        "s_count": 0,
+        "time_s": 0.0502,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 18,
+        "cnot_count": 80,
+        "had_count": 0,
+        "total_gates": 111,
+        "s_count": 4,
+        "time_s": 0.0455,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_8q_35l": {
+    "name": "phase_poly/pp_8q_35l",
+    "family": "phase_poly",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 98,
+        "cnot_count": 140,
+        "had_count": 0,
+        "total_gates": 420,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 42,
+        "cnot_count": 167,
+        "had_count": 0,
+        "total_gates": 220,
+        "s_count": 0,
+        "time_s": 0.1393,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 21,
+        "cnot_count": 90,
+        "had_count": 0,
+        "total_gates": 124,
+        "s_count": 0,
+        "time_s": 0.1066,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 20,
+        "cnot_count": 81,
+        "had_count": 0,
+        "total_gates": 113,
+        "s_count": 7,
+        "time_s": 0.2347,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_10q_25l": {
+    "name": "phase_poly/pp_10q_25l",
+    "family": "phase_poly",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 83,
+        "cnot_count": 100,
+        "had_count": 0,
+        "total_gates": 350,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 37,
+        "cnot_count": 164,
+        "had_count": 0,
+        "total_gates": 211,
+        "s_count": 0,
+        "time_s": 0.1193,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 33,
+        "cnot_count": 152,
+        "had_count": 0,
+        "total_gates": 195,
+        "s_count": 0,
+        "time_s": 0.9166,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 30,
+        "cnot_count": 133,
+        "had_count": 0,
+        "total_gates": 174,
+        "s_count": 3,
+        "time_s": 0.6863,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_10q_40l": {
+    "name": "phase_poly/pp_10q_40l",
+    "family": "phase_poly",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 116,
+        "cnot_count": 160,
+        "had_count": 0,
+        "total_gates": 560,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 56,
+        "cnot_count": 255,
+        "had_count": 0,
+        "total_gates": 325,
+        "s_count": 0,
+        "time_s": 0.2016,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 35,
+        "cnot_count": 185,
+        "had_count": 0,
+        "total_gates": 236,
+        "s_count": 0,
+        "time_s": 1.2759,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 35,
+        "cnot_count": 178,
+        "had_count": 0,
+        "total_gates": 225,
+        "s_count": 4,
+        "time_s": 0.7858,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "phase_poly/pp_12q_30l": {
+    "name": "phase_poly/pp_12q_30l",
+    "family": "phase_poly",
+    "qubits": 12,
+    "baselines": {
+      "original": {
+        "t_count": 131,
+        "cnot_count": 120,
+        "had_count": 0,
+        "total_gates": 480,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 49,
+        "cnot_count": 277,
+        "had_count": 0,
+        "total_gates": 333,
+        "s_count": 0,
+        "time_s": 0.1921,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 48,
+        "cnot_count": 254,
+        "had_count": 0,
+        "total_gates": 319,
+        "s_count": 0,
+        "time_s": 3.6062,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 48,
+        "cnot_count": 248,
+        "had_count": 0,
+        "total_gates": 313,
+        "s_count": 9,
+        "time_s": 5.1506,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_1": {
+    "name": "toffoli_chain/tof_chain_1",
+    "family": "toffoli_chain",
+    "qubits": 3,
+    "baselines": {
+      "original": {
+        "t_count": 7,
+        "cnot_count": 6,
+        "had_count": 2,
+        "total_gates": 15,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 7,
+        "cnot_count": 11,
+        "had_count": 2,
+        "total_gates": 20,
+        "s_count": 0,
+        "time_s": 0.0025,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 7,
+        "cnot_count": 7,
+        "had_count": 2,
+        "total_gates": 16,
+        "s_count": 0,
+        "time_s": 0.0118,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 7,
+        "cnot_count": 9,
+        "had_count": 2,
+        "total_gates": 21,
+        "s_count": 0,
+        "time_s": 0.0112,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_2": {
+    "name": "toffoli_chain/tof_chain_2",
+    "family": "toffoli_chain",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 14,
+        "cnot_count": 12,
+        "had_count": 4,
+        "total_gates": 30,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 12,
+        "cnot_count": 22,
+        "had_count": 4,
+        "total_gates": 40,
+        "s_count": 0,
+        "time_s": 0.0063,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 12,
+        "cnot_count": 16,
+        "had_count": 4,
+        "total_gates": 33,
+        "s_count": 0,
+        "time_s": 0.019,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 12,
+        "cnot_count": 18,
+        "had_count": 4,
+        "total_gates": 40,
+        "s_count": 1,
+        "time_s": 0.018,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_3": {
+    "name": "toffoli_chain/tof_chain_3",
+    "family": "toffoli_chain",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 21,
+        "cnot_count": 18,
+        "had_count": 6,
+        "total_gates": 45,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 17,
+        "cnot_count": 36,
+        "had_count": 6,
+        "total_gates": 60,
+        "s_count": 0,
+        "time_s": 0.0097,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 17,
+        "cnot_count": 25,
+        "had_count": 6,
+        "total_gates": 50,
+        "s_count": 0,
+        "time_s": 0.0284,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 17,
+        "cnot_count": 27,
+        "had_count": 6,
+        "total_gates": 59,
+        "s_count": 2,
+        "time_s": 0.0266,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_4": {
+    "name": "toffoli_chain/tof_chain_4",
+    "family": "toffoli_chain",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 28,
+        "cnot_count": 24,
+        "had_count": 8,
+        "total_gates": 60,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 22,
+        "cnot_count": 48,
+        "had_count": 8,
+        "total_gates": 80,
+        "s_count": 0,
+        "time_s": 0.0165,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 22,
+        "cnot_count": 34,
+        "had_count": 8,
+        "total_gates": 67,
+        "s_count": 0,
+        "time_s": 0.0391,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 22,
+        "cnot_count": 36,
+        "had_count": 8,
+        "total_gates": 78,
+        "s_count": 3,
+        "time_s": 0.0377,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_5": {
+    "name": "toffoli_chain/tof_chain_5",
+    "family": "toffoli_chain",
+    "qubits": 7,
+    "baselines": {
+      "original": {
+        "t_count": 35,
+        "cnot_count": 30,
+        "had_count": 10,
+        "total_gates": 75,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 27,
+        "cnot_count": 54,
+        "had_count": 10,
+        "total_gates": 93,
+        "s_count": 0,
+        "time_s": 0.0236,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 27,
+        "cnot_count": 43,
+        "had_count": 10,
+        "total_gates": 84,
+        "s_count": 0,
+        "time_s": 0.047,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 27,
+        "cnot_count": 45,
+        "had_count": 10,
+        "total_gates": 97,
+        "s_count": 4,
+        "time_s": 0.0437,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_6": {
+    "name": "toffoli_chain/tof_chain_6",
+    "family": "toffoli_chain",
+    "qubits": 8,
+    "baselines": {
+      "original": {
+        "t_count": 42,
+        "cnot_count": 36,
+        "had_count": 12,
+        "total_gates": 90,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 32,
+        "cnot_count": 62,
+        "had_count": 12,
+        "total_gates": 108,
+        "s_count": 0,
+        "time_s": 0.0277,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 32,
+        "cnot_count": 52,
+        "had_count": 12,
+        "total_gates": 101,
+        "s_count": 0,
+        "time_s": 0.0581,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 32,
+        "cnot_count": 54,
+        "had_count": 12,
+        "total_gates": 116,
+        "s_count": 5,
+        "time_s": 0.0553,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_8": {
+    "name": "toffoli_chain/tof_chain_8",
+    "family": "toffoli_chain",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 56,
+        "cnot_count": 48,
+        "had_count": 16,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 42,
+        "cnot_count": 97,
+        "had_count": 16,
+        "total_gates": 158,
+        "s_count": 0,
+        "time_s": 0.0393,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 42,
+        "cnot_count": 70,
+        "had_count": 16,
+        "total_gates": 135,
+        "s_count": 0,
+        "time_s": 0.0858,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 42,
+        "cnot_count": 72,
+        "had_count": 16,
+        "total_gates": 154,
+        "s_count": 7,
+        "time_s": 0.0816,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_chain/tof_chain_10": {
+    "name": "toffoli_chain/tof_chain_10",
+    "family": "toffoli_chain",
+    "qubits": 12,
+    "baselines": {
+      "original": {
+        "t_count": 70,
+        "cnot_count": 60,
+        "had_count": 20,
+        "total_gates": 150,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 52,
+        "cnot_count": 110,
+        "had_count": 20,
+        "total_gates": 188,
+        "s_count": 0,
+        "time_s": 0.0592,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 52,
+        "cnot_count": 88,
+        "had_count": 20,
+        "total_gates": 169,
+        "s_count": 0,
+        "time_s": 0.1235,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 52,
+        "cnot_count": 90,
+        "had_count": 20,
+        "total_gates": 192,
+        "s_count": 9,
+        "time_s": 0.1162,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_ladder/tof_ladder_2": {
+    "name": "toffoli_ladder/tof_ladder_2",
+    "family": "toffoli_ladder",
+    "qubits": 4,
+    "baselines": {
+      "original": {
+        "t_count": 14,
+        "cnot_count": 12,
+        "had_count": 4,
+        "total_gates": 30,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 12,
+        "cnot_count": 22,
+        "had_count": 4,
+        "total_gates": 40,
+        "s_count": 0,
+        "time_s": 0.0065,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 12,
+        "cnot_count": 14,
+        "had_count": 4,
+        "total_gates": 31,
+        "s_count": 0,
+        "time_s": 0.0185,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 12,
+        "cnot_count": 18,
+        "had_count": 4,
+        "total_gates": 40,
+        "s_count": 1,
+        "time_s": 0.0176,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_ladder/tof_ladder_3": {
+    "name": "toffoli_ladder/tof_ladder_3",
+    "family": "toffoli_ladder",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 21,
+        "cnot_count": 18,
+        "had_count": 6,
+        "total_gates": 45,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 19,
+        "cnot_count": 23,
+        "had_count": 6,
+        "total_gates": 49,
+        "s_count": 0,
+        "time_s": 0.0091,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 19,
+        "cnot_count": 21,
+        "had_count": 6,
+        "total_gates": 48,
+        "s_count": 0,
+        "time_s": 0.0333,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 19,
+        "cnot_count": 27,
+        "had_count": 6,
+        "total_gates": 61,
+        "s_count": 1,
+        "time_s": 0.0321,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_ladder/tof_ladder_4": {
+    "name": "toffoli_ladder/tof_ladder_4",
+    "family": "toffoli_ladder",
+    "qubits": 6,
+    "baselines": {
+      "original": {
+        "t_count": 28,
+        "cnot_count": 24,
+        "had_count": 8,
+        "total_gates": 60,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 24,
+        "cnot_count": 28,
+        "had_count": 8,
+        "total_gates": 61,
+        "s_count": 0,
+        "time_s": 0.0168,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 24,
+        "cnot_count": 28,
+        "had_count": 8,
+        "total_gates": 64,
+        "s_count": 0,
+        "time_s": 0.0469,
+        "verified": true,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 24,
+        "cnot_count": 36,
+        "had_count": 8,
+        "total_gates": 79,
+        "s_count": 0,
+        "time_s": 0.0456,
+        "verified": true,
+        "success": true
+      }
+    }
+  },
+  "toffoli_ladder/tof_ladder_5": {
+    "name": "toffoli_ladder/tof_ladder_5",
+    "family": "toffoli_ladder",
+    "qubits": 7,
+    "baselines": {
+      "original": {
+        "t_count": 35,
+        "cnot_count": 30,
+        "had_count": 10,
+        "total_gates": 75,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 31,
+        "cnot_count": 43,
+        "had_count": 10,
+        "total_gates": 85,
+        "s_count": 0,
+        "time_s": 0.018,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 31,
+        "cnot_count": 35,
+        "had_count": 10,
+        "total_gates": 80,
+        "s_count": 0,
+        "time_s": 0.0561,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 31,
+        "cnot_count": 45,
+        "had_count": 10,
+        "total_gates": 100,
+        "s_count": 0,
+        "time_s": 0.0535,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_ladder/tof_ladder_8": {
+    "name": "toffoli_ladder/tof_ladder_8",
+    "family": "toffoli_ladder",
+    "qubits": 10,
+    "baselines": {
+      "original": {
+        "t_count": 56,
+        "cnot_count": 48,
+        "had_count": 16,
+        "total_gates": 120,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 48,
+        "cnot_count": 63,
+        "had_count": 16,
+        "total_gates": 129,
+        "s_count": 0,
+        "time_s": 0.0471,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 48,
+        "cnot_count": 56,
+        "had_count": 16,
+        "total_gates": 128,
+        "s_count": 0,
+        "time_s": 0.1,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 48,
+        "cnot_count": 72,
+        "had_count": 16,
+        "total_gates": 160,
+        "s_count": 0,
+        "time_s": 0.0974,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_2": {
+    "name": "toffoli_interleaved/tof_inter_2",
+    "family": "toffoli_interleaved",
+    "qubits": 5,
+    "baselines": {
+      "original": {
+        "t_count": 14,
+        "cnot_count": 15,
+        "had_count": 4,
+        "total_gates": 33,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 14,
+        "cnot_count": 21,
+        "had_count": 4,
+        "total_gates": 40,
+        "s_count": 0,
+        "time_s": 0.0061,
+        "verified": true,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 13,
+        "cnot_count": 45,
+        "had_count": 4,
+        "total_gates": 68,
+        "s_count": 0,
+        "time_s": 0.0296,
+        "verified": false,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 13,
+        "cnot_count": 43,
+        "had_count": 4,
+        "total_gates": 67,
+        "s_count": 2,
+        "time_s": 0.0275,
+        "verified": false,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_3": {
+    "name": "toffoli_interleaved/tof_inter_3",
+    "family": "toffoli_interleaved",
+    "qubits": 7,
+    "baselines": {
+      "original": {
+        "t_count": 21,
+        "cnot_count": 23,
+        "had_count": 6,
+        "total_gates": 50,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 21,
+        "cnot_count": 44,
+        "had_count": 6,
+        "total_gates": 73,
+        "s_count": 0,
+        "time_s": 0.0097,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 20,
+        "cnot_count": 68,
+        "had_count": 6,
+        "total_gates": 103,
+        "s_count": 0,
+        "time_s": 0.0562,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 20,
+        "cnot_count": 67,
+        "had_count": 6,
+        "total_gates": 104,
+        "s_count": 2,
+        "time_s": 0.0515,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_4": {
+    "name": "toffoli_interleaved/tof_inter_4",
+    "family": "toffoli_interleaved",
+    "qubits": 9,
+    "baselines": {
+      "original": {
+        "t_count": 28,
+        "cnot_count": 31,
+        "had_count": 8,
+        "total_gates": 67,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 28,
+        "cnot_count": 61,
+        "had_count": 8,
+        "total_gates": 98,
+        "s_count": 0,
+        "time_s": 0.0167,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 27,
+        "cnot_count": 93,
+        "had_count": 8,
+        "total_gates": 140,
+        "s_count": 0,
+        "time_s": 0.1044,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 27,
+        "cnot_count": 102,
+        "had_count": 8,
+        "total_gates": 154,
+        "s_count": 2,
+        "time_s": 0.1004,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_5": {
+    "name": "toffoli_interleaved/tof_inter_5",
+    "family": "toffoli_interleaved",
+    "qubits": 11,
+    "baselines": {
+      "original": {
+        "t_count": 35,
+        "cnot_count": 39,
+        "had_count": 10,
+        "total_gates": 84,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 35,
+        "cnot_count": 77,
+        "had_count": 10,
+        "total_gates": 123,
+        "s_count": 0,
+        "time_s": 0.021,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 34,
+        "cnot_count": 127,
+        "had_count": 10,
+        "total_gates": 190,
+        "s_count": 0,
+        "time_s": 0.1897,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 34,
+        "cnot_count": 123,
+        "had_count": 10,
+        "total_gates": 186,
+        "s_count": 2,
+        "time_s": 0.1713,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_6": {
+    "name": "toffoli_interleaved/tof_inter_6",
+    "family": "toffoli_interleaved",
+    "qubits": 13,
+    "baselines": {
+      "original": {
+        "t_count": 42,
+        "cnot_count": 47,
+        "had_count": 12,
+        "total_gates": 101,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 42,
+        "cnot_count": 75,
+        "had_count": 12,
+        "total_gates": 132,
+        "s_count": 0,
+        "time_s": 0.0294,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 41,
+        "cnot_count": 145,
+        "had_count": 12,
+        "total_gates": 221,
+        "s_count": 0,
+        "time_s": 0.3179,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 41,
+        "cnot_count": 156,
+        "had_count": 12,
+        "total_gates": 235,
+        "s_count": 2,
+        "time_s": 0.2977,
+        "verified": null,
+        "success": true
+      }
+    }
+  },
+  "toffoli_interleaved/tof_inter_8": {
+    "name": "toffoli_interleaved/tof_inter_8",
+    "family": "toffoli_interleaved",
+    "qubits": 17,
+    "baselines": {
+      "original": {
+        "t_count": 56,
+        "cnot_count": 63,
+        "had_count": 16,
+        "total_gates": 135,
+        "s_count": 0,
+        "success": true,
+        "time_s": 0.0,
+        "verified": true
+      },
+      "full_reduce": {
+        "t_count": 56,
+        "cnot_count": 106,
+        "had_count": 16,
+        "total_gates": 181,
+        "s_count": 0,
+        "time_s": 0.0401,
+        "verified": null,
+        "success": true
+      },
+      "full_optimize": {
+        "t_count": 55,
+        "cnot_count": 201,
+        "had_count": 16,
+        "total_gates": 304,
+        "s_count": 0,
+        "time_s": 0.7445,
+        "verified": null,
+        "success": true
+      },
+      "phase_block": {
+        "t_count": 55,
+        "cnot_count": 213,
+        "had_count": 16,
+        "total_gates": 315,
+        "s_count": 2,
+        "time_s": 0.7518,
+        "verified": null,
+        "success": true
+      }
+    }
+  }
+}

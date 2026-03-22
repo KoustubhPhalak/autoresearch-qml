@@ -1,0 +1,12 @@
+{
+  "seed": 42,
+  "pyzx_version": "0.10.0",
+  "n_benchmarks": 50,
+  "families": {
+    "random": 20,
+    "phase_poly": 11,
+    "toffoli_chain": 8,
+    "toffoli_ladder": 5,
+    "toffoli_interleaved": 6
+  }
+}
